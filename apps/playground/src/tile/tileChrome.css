@@ -24,3 +24,15 @@
     --bk-tile-gap: 8px;
   }
 }
+
+/* A finger-sized hit area around the small "..." icon; the header around it is a drag handle. */
+.tile-menu-trigger {
+  position: relative;
+  overflow: visible;
+}
+
+.tile-menu-trigger::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+}

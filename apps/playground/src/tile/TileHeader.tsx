@@ -16,7 +16,7 @@ interface HeaderContentProps {
 // The library's header strip, filled by the host: the widget's name on the left, the "..." trigger on the right.
 function StripHeader({ name, menu }: HeaderContentProps) {
   const trigger = (
-    <ActionIcon aria-label={`Options for ${name}`} variant="subtle" c="inherit" size={24} {...noDragProps()}>
+    <ActionIcon aria-label={`Options for ${name}`} className="tile-menu-trigger" variant="subtle" c="inherit" size={24} {...noDragProps()}>
       <IconDots size={16} />
     </ActionIcon>
   );
@@ -35,7 +35,7 @@ function StripHeader({ name, menu }: HeaderContentProps) {
 // corner, transparent so the rest of the overlay strip lets clicks through to the widget.
 function OverlayHeader({ name, menu }: HeaderContentProps) {
   const trigger = (
-    <ActionIcon aria-label={`Options for ${name}`} variant="subtle" c="dimmed" bg="transparent" size={28} style={OVERLAY_TRIGGER_STYLE} {...noDragProps()}>
+    <ActionIcon aria-label={`Options for ${name}`} className="tile-menu-trigger" variant="subtle" c="dimmed" bg="transparent" size={28} style={OVERLAY_TRIGGER_STYLE} {...noDragProps()}>
       <IconDots size={18} />
     </ActionIcon>
   );
