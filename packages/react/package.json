@@ -1,0 +1,65 @@
+{
+  "name": "boardkit-react",
+  "version": "0.1.0",
+  "description": "BoardKit for React: drag-and-drop widget dashboards that adapt to every screen.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brian7989/BoardKit.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/brian7989/BoardKit#readme",
+  "bugs": "https://github.com/brian7989/BoardKit/issues",
+  "author": "Brian Taesung Lee",
+  "keywords": [
+    "react",
+    "dashboard",
+    "grid",
+    "drag-and-drop",
+    "widgets",
+    "home-screen",
+    "layout"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "boardkit-core": "workspace:*"
+  },
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json && cp src/styles.css dist/styles.css && node scripts/addUseClient.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --root ../.. packages/react"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.7.2"
+  }
+}

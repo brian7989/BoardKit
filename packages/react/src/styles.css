@@ -1,0 +1,101 @@
+/* Optional default look for interaction feedback. Everything else about a tile's
+   appearance, including host-rendered chrome, is the host's own. */
+
+:root {
+  /* Gutter between tiles; 0 keeps existing hosts unchanged unless they opt in. */
+  --bk-tile-gap: 0px;
+}
+
+/* border-box so the gap padding doesn't change the tile's own hit area or grid position.
+   touch-action: manipulation, not none — a tile must still let the page scroll; only an
+   active touch drag (a window touchmove listener) stops it. -webkit-touch-callout/user-select
+   keep iOS Safari's long-press callout and selection popup from fighting the drag gesture. */
+[data-bk-tile-id] {
+  box-sizing: border-box;
+  padding: calc(var(--bk-tile-gap) / 2);
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+[data-bk-tile-id][data-bk-draggable='true'] {
+  cursor: grab;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A widget's own inputs stay selectable/editable; only the tile's chrome resists long-press. */
+[data-bk-tile-id] input,
+[data-bk-tile-id] textarea,
+[data-bk-tile-id] [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* `scale`, not `transform: scale(...)` — the tile's own inline `transform` already positions
+   it, and `scale` is its own property so the two compose instead of one clobbering the other. */
+[data-bk-tile-id][data-bk-lifted='true']:not([data-bk-active='true']) {
+  scale: 1.03;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.18));
+}
+
+/* drop-shadow, not box-shadow: the widget inside decides its own shape (rounded, circular,
+   whatever) and drop-shadow traces that alpha instead of the tile's own rectangle. */
+[data-bk-tile-id][data-bk-active='true'] {
+  z-index: 10;
+  cursor: grabbing;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.18));
+}
+
+[data-bk-tile-id][data-bk-active='true'][data-bk-valid='false'] {
+  cursor: not-allowed;
+}
+
+/* A floating tile sits above the grid at all times, not just mid-drag. */
+[data-bk-tile-id][data-bk-floating='true'] {
+  z-index: 12;
+  cursor: grab;
+  filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.24));
+}
+
+[data-bk-tile-id][data-bk-floating='true']:active {
+  cursor: grabbing;
+}
+
+/* Static halo showing where a drag will land. clip-path insets it by the same half-gap as a
+   tile's own padding, so the halo matches the gutter; outline (not border) lets that inset be
+   controlled with a negative offset instead of moving the box edge itself. */
+[data-bk-placeholder='true'] {
+  z-index: 5;
+  pointer-events: none;
+  box-sizing: border-box;
+  border-radius: inherit;
+  background: rgba(37, 99, 235, 0.1);
+  outline: 2px dashed rgba(37, 99, 235, 0.5);
+  outline-offset: calc(-1 * (var(--bk-tile-gap) / 2 + 2px));
+  clip-path: inset(calc(var(--bk-tile-gap) / 2));
+}
+
+[data-bk-placeholder='true'][data-bk-valid='false'] {
+  background: rgba(220, 38, 38, 0.08);
+  outline-color: rgba(220, 38, 38, 0.45);
+}
+
+/* Board-level "Stack with…" picking. Drawn inside the tile (negative offset) since the board
+   clips to its own box and an outer ring would lose the edge it shares with the board. */
+[data-bk-stack-role='eligible'] {
+  cursor: pointer;
+  outline: 2px dashed rgba(37, 99, 235, 0.6);
+  outline-offset: -2px;
+}
+
+[data-bk-stack-role='source'] {
+  cursor: pointer;
+  outline: 2px solid rgba(37, 99, 235, 0.8);
+  outline-offset: -2px;
+}
+
+[data-bk-stack-role='ineligible'] {
+  opacity: 0.35;
+  pointer-events: none;
+}

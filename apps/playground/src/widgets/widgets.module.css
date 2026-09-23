@@ -1,0 +1,38 @@
+/* Every widget renders at a fixed design canvas (boardkit-react scales it to the real cell with
+   CSS zoom), so sizes here are plain px designed for a 160px cell — never a responsive unit. */
+.card {
+  height: 100%;
+  width: 100%;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.label {
+  font-size: 12px;
+}
+
+.value {
+  font-size: 26px;
+}
+
+.hero {
+  font-size: 32px;
+}
+
+.body {
+  font-size: 13px;
+}
+
+.micro {
+  font-size: 10px;
+}
+
+.fit {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,48 @@
+{
+  "name": "boardkit-core",
+  "version": "0.1.0",
+  "description": "The pure, zero-dependency layout engine behind BoardKit: grid model, ops and the collision solver.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brian7989/BoardKit.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/brian7989/BoardKit#readme",
+  "bugs": "https://github.com/brian7989/BoardKit/issues",
+  "author": "Brian Taesung Lee",
+  "keywords": [
+    "dashboard",
+    "grid",
+    "drag-and-drop",
+    "widgets",
+    "home-screen",
+    "layout",
+    "headless"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
