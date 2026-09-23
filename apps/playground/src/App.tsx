@@ -22,7 +22,7 @@ const emptyState = (
 
 export function App() {
   return (
-    <Stack h="100vh" gap="md" p="lg">
+    <Stack h="100dvh" gap="md" p="lg">
       <BoardProvider config={boards} storageKey="boardkit-playground" onReject={showRejection} tileHeader={TileHeader}>
         <Header />
         <Box className="tile-area">

@@ -41,8 +41,10 @@
 
 /* drop-shadow, not box-shadow: the widget inside decides its own shape (rounded, circular,
    whatever) and drop-shadow traces that alpha instead of the tile's own rectangle. */
+/* will-change gives a moving tile its own layer; without it WebKit leaves drop-shadow trails. */
 [data-bk-tile-id][data-bk-active='true'] {
   z-index: 10;
+  will-change: transform;
   cursor: grabbing;
   filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.18));
 }
@@ -54,6 +56,7 @@
 /* A floating tile sits above the grid at all times, not just mid-drag. */
 [data-bk-tile-id][data-bk-floating='true'] {
   z-index: 12;
+  will-change: transform;
   cursor: grab;
   filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.24));
 }
