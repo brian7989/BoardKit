@@ -34,4 +34,28 @@ describe('relocateInvalidTile', () => {
     expect(result?.boards.find((board) => board.id === boardId('default'))?.tiles[0]).toMatchObject({ col: 0, row: 0 });
     expect(result?.boards.find((board) => board.id === boardId('other'))).toBe(other);
   });
+
+  function overlayTile(id: string, x: number, y: number) {
+    return { ...tile(id, 0, 0), float: { x: cell(x), y: cell(y) } };
+  }
+
+  it('moves an invalid Overlay tile to a free Overlay spot, never null', () => {
+    const candidate: ValidCandidate = {
+      grid: { cols: 2, rows: 1 },
+      boards: [{ id: boardId('default'), tiles: [overlayTile('a', 5, 5), overlayTile('b', 1, 0)] }],
+    };
+    const result = relocateInvalidTile(candidate, tileId('a'), CTX);
+    expect(result?.boards[0]?.tiles.find((t) => t.id === tileId('a'))?.float).toEqual({ x: 0, y: 0 });
+  });
+
+  it('turns an invalid Overlay tile Free (clamped), never dropping it, when no Overlay spot is free', () => {
+    const oneCell: EngineContext = { ...CTX, grid: { ...CTX.grid, cols: 1, rows: 1 } };
+    const candidate: ValidCandidate = {
+      grid: { cols: 1, rows: 1 },
+      boards: [{ id: boardId('default'), tiles: [overlayTile('a', 5, 5), overlayTile('b', 0, 0)] }],
+    };
+    const result = relocateInvalidTile(candidate, tileId('a'), oneCell);
+    const relocated = result?.boards[0]?.tiles.find((t) => t.id === tileId('a'));
+    expect(relocated?.float).toEqual({ x: 0, y: 0, free: true });
+  });
 });

@@ -14,6 +14,8 @@ export const ChangeKind = {
   BoardRemoved: 'board-removed',
   Floated: 'floated',
   Unfloated: 'unfloated',
+  Freed: 'freed',
+  Snapped: 'snapped',
 } as const;
 
 export type ChangeKind = ValueOf<typeof ChangeKind>;

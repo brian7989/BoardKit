@@ -12,7 +12,8 @@ export interface Tile {
   readonly items: readonly WidgetInstance[];
   readonly active: number;
   // Present only while floating; col/row still hold the last grid position for re-placement when floating turns off.
-  readonly float?: { readonly x: number; readonly y: number };
+  // `free` opts out of the snapped Overlay layer into unsnapped, collision-free placement.
+  readonly float?: { readonly x: number; readonly y: number; readonly free?: boolean };
 }
 
 export function isStack(tile: Tile): boolean {
@@ -21,6 +22,10 @@ export function isStack(tile: Tile): boolean {
 
 export function isFloating(tile: Tile): boolean {
   return tile.float !== undefined;
+}
+
+export function isFree(tile: Tile): boolean {
+  return tile.float?.free === true;
 }
 
 export function firstItem(tile: Tile): WidgetInstance {

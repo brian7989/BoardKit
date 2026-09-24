@@ -8,7 +8,8 @@ export { rectOfTile } from './shared/index.js';
 export type { Size } from './shared/index.js';
 export { isSizeAllowed, sizesEqual } from './shared/index.js';
 export type { WidgetInstance, Tile, Board, BoardsState, LayoutTile, SerializedState } from './model/index.js';
-export { isStack, isFloating, firstItem, activeItem, findBoard, findTile, STATE_VERSION } from './model/index.js';
+export { isStack, isFloating, isFree, firstItem, activeItem, findBoard, findTile, STATE_VERSION } from './model/index.js';
+export { TileLayer, layerOf } from './model/index.js';
 export type { Issue } from './issues/index.js';
 export { IssueKind } from './issues/index.js';
 export type {
@@ -26,6 +27,7 @@ export type {
   RemoveBoardOp,
   SetFloatingOp,
   MoveFloatingOp,
+  SetFloatFreeOp,
   Change,
   Rejection,
   Applied,

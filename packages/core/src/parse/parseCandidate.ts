@@ -8,7 +8,7 @@ import { parseBoard } from './parseBoard.js';
 import { parseLayouts } from './parseLayouts.js';
 
 // The oldest wire version this build still reads, migrating it in with no saved layouts.
-const MIGRATABLE_STATE_VERSION = 1;
+const MIN_MIGRATABLE_STATE_VERSION = 1;
 
 // Structural only, no semantic validation.
 export function parseCandidate(input: unknown): Result<ValidCandidate, readonly Issue[]> {
@@ -17,15 +17,15 @@ export function parseCandidate(input: unknown): Result<ValidCandidate, readonly 
 
   const version = readNumber(object.value['version'], '$.version');
   if (!version.ok) return err([version.error]);
-  if (version.value !== STATE_VERSION && version.value !== MIGRATABLE_STATE_VERSION) {
+  if (version.value < MIN_MIGRATABLE_STATE_VERSION || version.value > STATE_VERSION) {
     return err([{ kind: IssueKind.SchemaVersion, message: `Unsupported state version ${version.value}.` }]);
   }
 
   const grid = parseGrid(object.value['grid'], '$.grid');
   if (!grid.ok) return err(grid.error);
-  const boards = parseBoards(object.value['boards'], '$.boards');
+  const boards = parseBoards(object.value['boards'], '$.boards', version.value);
   if (!boards.ok) return err(boards.error);
-  const layouts = parseLayouts(object.value['layouts'], '$.layouts');
+  const layouts = parseLayouts(object.value['layouts'], '$.layouts', version.value);
   if (!layouts.ok) return err(layouts.error);
 
   return ok({ grid: grid.value, boards: boards.value, layouts: layouts.value });
@@ -41,12 +41,12 @@ function parseGrid(value: unknown, path: string): Result<{ cols: number; rows: n
   return ok({ cols: cols.value, rows: rows.value });
 }
 
-function parseBoards(value: unknown, path: string): Result<readonly Board[], readonly Issue[]> {
+function parseBoards(value: unknown, path: string, version: number): Result<readonly Board[], readonly Issue[]> {
   const array = readArray(value, path);
   if (!array.ok) return err([array.error]);
   const boards: Board[] = [];
   for (const [index, entry] of array.value.entries()) {
-    const board = parseBoard(entry, `${path}[${index}]`);
+    const board = parseBoard(entry, `${path}[${index}]`, version);
     if (!board.ok) return err(board.error);
     boards.push(board.value);
   }

@@ -15,6 +15,7 @@ export const OpType = {
   RemoveBoard: 'remove-board',
   SetFloating: 'set-floating',
   MoveFloating: 'move-floating',
+  SetFloatFree: 'set-float-free',
 } as const;
 
 export type OpType = ValueOf<typeof OpType>;

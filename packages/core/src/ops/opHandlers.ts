@@ -15,6 +15,7 @@ import { addBoard } from './handlers/addBoard.js';
 import { removeBoard } from './handlers/removeBoard.js';
 import { setFloating } from './handlers/setFloating.js';
 import { moveFloating } from './handlers/moveFloating.js';
+import { setFloatFree } from './handlers/setFloatFree.js';
 
 export const opHandlers = {
   [OpType.Move]: move,
@@ -30,4 +31,5 @@ export const opHandlers = {
   [OpType.RemoveBoard]: removeBoard,
   [OpType.SetFloating]: setFloating,
   [OpType.MoveFloating]: moveFloating,
+  [OpType.SetFloatFree]: setFloatFree,
 } satisfies HandlerMap<Op, OpHandlerArgs, OpOutcome>;

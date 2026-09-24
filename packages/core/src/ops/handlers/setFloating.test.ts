@@ -71,7 +71,8 @@ describe('setFloating', () => {
     const result = engine.apply(moved.value.state, { type: OpType.SetFloating, board: BOARD, tile: tileId('t0'), floating: true });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.state.boards[0]?.tiles[0]?.float).toEqual({ x: 2.5, y: 0.5 });
+    // Overlay by default: MoveFloating already rounded 2.5/0.5 to the nearest cell.
+    expect(result.value.state.boards[0]?.tiles[0]?.float).toEqual({ x: 3, y: 1 });
   });
 
   it('is a no-op, with no changes, when asked to stop floating a tile that is already grounded', () => {

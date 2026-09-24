@@ -49,8 +49,21 @@ describe('checkOverlap', () => {
     expect(issues.every((issue) => issue.tile === tileId('a'))).toBe(true);
   });
 
-  it('exempts a floating tile from ever overlapping anything', () => {
-    const floating = makeTile('a', { col: 0, row: 0, float: { x: 0, y: 0 } });
-    expect(checkOverlap(candidate([floating, makeTile('b', { col: 0, row: 0 })]))).toEqual([]);
+  it('exempts a Free tile from ever overlapping anything, even another Free tile at the same spot', () => {
+    const free = makeTile('a', { col: 0, row: 0, float: { x: 0, y: 0, free: true } });
+    const otherFree = makeTile('b', { col: 0, row: 0, float: { x: 0, y: 0, free: true } });
+    expect(checkOverlap(candidate([free, otherFree, makeTile('c', { col: 0, row: 0 })]))).toEqual([]);
+  });
+
+  it('does not report overlap between a snapped Overlay tile and the Grid tile beneath it', () => {
+    const overlay = makeTile('a', { col: 0, row: 0, float: { x: 0, y: 0 } });
+    expect(checkOverlap(candidate([overlay, makeTile('b', { col: 0, row: 0 })]))).toEqual([]);
+  });
+
+  it('reports Overlap between two snapped Overlay tiles at the same cell', () => {
+    const one = makeTile('a', { col: 0, row: 0, float: { x: 1, y: 1 } });
+    const two = makeTile('b', { col: 0, row: 0, float: { x: 1, y: 1 } });
+    const issues = checkOverlap(candidate([one, two]));
+    expect(issues).toEqual([{ kind: IssueKind.Overlap, board: boardId('default'), tile: tileId('a'), message: 'Tile a overlaps b.' }]);
   });
 });

@@ -158,7 +158,7 @@ describe('add', () => {
     searchSpy.mockRestore();
   });
 
-  it('adds a tile already floating, even on a completely full board', () => {
+  it('adds a Free tile already floating, even on a completely full board', () => {
     const engine = makeEngine();
     let state = engine.empty();
     for (let index = 0; index < GRID.cols * GRID.rows; index += 1) {
@@ -173,15 +173,81 @@ describe('add', () => {
       tileId: tileId('floater'),
       widget: { id: widgetId('floater-w'), type: WIDGET_TYPE },
       size: SIZE_SMALL,
-      float: { x: 1.5, y: 2.5 },
+      float: { x: 1.5, y: 2.5, free: true },
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const tile = result.value.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('floater'));
-    expect(tile?.float).toEqual({ x: 1.5, y: 2.5 });
+    expect(tile?.float).toEqual({ x: 1.5, y: 2.5, free: true });
   });
 
-  it('clamps an out-of-range float position into the board', () => {
+  it('clamps an out-of-range Free float position into the board', () => {
+    const engine = makeEngine();
+    const result = engine.apply(engine.empty(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('floater'),
+      widget: { id: widgetId('floater-w'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 99, y: -5, free: true },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const tile = result.value.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('floater'));
+    expect(tile?.float).toEqual({ x: GRID.cols - 1, y: 0, free: true });
+  });
+
+  it('adds a tile snapped into the Overlay layer at the rounded position, even on a full grid', () => {
+    const engine = makeEngine();
+    let state = engine.empty();
+    for (let index = 0; index < GRID.cols * GRID.rows; index += 1) {
+      const result = addTile(engine, state, { id: `t${index}` });
+      if (!result.ok) throw new Error('fixture fill should succeed');
+      state = result.value.state;
+    }
+
+    const result = engine.apply(state, {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('floater'),
+      widget: { id: widgetId('floater-w'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 1.4, y: 2.6 },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const tile = result.value.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('floater'));
+    expect(tile?.float).toEqual({ x: 1, y: 3 });
+  });
+
+  it('pushes an existing Overlay tile out of the way when adding a snapped one on top', () => {
+    const engine = makeEngine();
+    const first = engine.apply(engine.empty(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('a'),
+      widget: { id: widgetId('a-w'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 0, y: 0 },
+    });
+    if (!first.ok) throw new Error('fixture add should succeed');
+
+    const result = engine.apply(first.value.state, {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('b'),
+      widget: { id: widgetId('b-w'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 0, y: 0 },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const tiles = result.value.state.boards[0]?.tiles ?? [];
+    expect(tiles.find((tile) => tile.id === tileId('b'))?.float).toEqual({ x: 0, y: 0 });
+    expect(tiles.find((tile) => tile.id === tileId('a'))?.float).not.toEqual({ x: 0, y: 0 });
+  });
+
+  it('falls back to a free Overlay spot when the requested cell is out of bounds', () => {
     const engine = makeEngine();
     const result = engine.apply(engine.empty(), {
       type: OpType.Add,
@@ -194,7 +260,30 @@ describe('add', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const tile = result.value.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('floater'));
-    expect(tile?.float).toEqual({ x: GRID.cols - 1, y: 0 });
+    expect(tile?.float).toEqual({ x: 0, y: 0 });
+  });
+
+  it('rejects NoFreeSpace adding a snapped tile once the Overlay layer is completely full', () => {
+    const engine = createEngine({ grid: { cols: 1, rows: 1 }, catalog: { [WIDGET_TYPE]: { sizes: [SIZE_SMALL] } } });
+    const first = engine.apply(engine.empty(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('a'),
+      widget: { id: widgetId('a-w'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 0, y: 0 },
+    });
+    if (!first.ok) throw new Error('fixture add should succeed');
+
+    const result = engine.apply(first.value.state, {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('b'),
+      widget: { id: widgetId('b-w'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 0, y: 0 },
+    });
+    expect(result).toEqual({ ok: false, error: { reason: RejectReason.NoFreeSpace } });
   });
 
   it('un-floating a tile added floating re-places it via the normal solver', () => {

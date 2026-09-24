@@ -1,7 +1,7 @@
 import { cell, err, ok, type BoardId, type TileId } from '../../shared/index.js';
-import { findBoard, type Board, type BoardsState, type Tile } from '../../model/index.js';
+import { findBoard, isFloating, type Board, type BoardsState, type Tile } from '../../model/index.js';
 import type { EngineContext } from '../../engine/index.js';
-import { placePinned } from '../primitives/index.js';
+import { placeOverlay, placePinned } from '../primitives/index.js';
 import { ChangeKind } from '../outcome/ChangeKind.js';
 import { RejectReason } from '../outcome/RejectReason.js';
 import type { Change } from '../outcome/Change.js';
@@ -22,15 +22,28 @@ export function setFloating(op: SetFloatingOp, ctx: EngineContext, state: Boards
   const tile = board?.tiles.find((candidate) => candidate.id === op.tile);
   if (!board || !tile) return err({ reason: RejectReason.UnknownTarget });
 
-  return op.floating ? startFloating(state, board, tile) : stopFloating({ ctx, state, board, tile });
+  return op.floating ? startFloating({ ctx, state, board, tile }) : stopFloating({ ctx, state, board, tile });
 }
 
-function startFloating(state: BoardsState, board: Board, tile: Tile): OpOutcome {
-  const float = tile.float ?? { x: tile.col, y: tile.row };
-  const tiles = board.tiles.map((candidate) => (candidate.id === tile.id ? { ...candidate, float } : candidate));
-  const boards = state.boards.map((candidate) => (candidate.id === board.id ? { ...board, tiles } : candidate));
+interface StartFloatingInput {
+  readonly ctx: EngineContext;
+  readonly state: BoardsState;
+  readonly board: Board;
+  readonly tile: Tile;
+}
+
+// Already floating (Overlay or Free) is a no-op; a grid tile enters the Overlay layer at its
+// current cell, resolved with the solver, falling back to a free Overlay spot.
+function startFloating(input: StartFloatingInput): OpOutcome {
+  const { ctx, state, board, tile } = input;
+  if (isFloating(tile)) return ok({ candidate: { grid: state.grid, boards: state.boards }, changes: [] });
+
+  const placed = placeOverlay({ board, tile, size: tile.size, at: { x: tile.col, y: tile.row }, ctx });
+  if (!placed.ok) return placed;
+
+  const boards = state.boards.map((candidate) => (candidate.id === board.id ? placed.value.board : candidate));
   const change: Change = { tile: tile.id, board: board.id, kind: ChangeKind.Floated };
-  return ok({ candidate: { grid: state.grid, boards }, changes: [change] });
+  return ok({ candidate: { grid: state.grid, boards }, changes: [change, ...placed.value.displaced] });
 }
 
 interface StopFloatingInput {

@@ -23,7 +23,7 @@ interface RawTileInput {
   readonly row: number;
   readonly type: keyof typeof CATALOG;
   readonly size?: { readonly w: number; readonly h: number };
-  readonly float?: { readonly x: number; readonly y: number };
+  readonly float?: { readonly x: number; readonly y: number; readonly free?: boolean };
 }
 
 function rawTile(input: RawTileInput) {
@@ -128,21 +128,54 @@ describe('reflow', () => {
     expect(result.state.boards.map((board) => board.id)).toEqual([boardId('default'), boardId('empty')]);
   });
 
-  it('clamps a floating tile into bounds and shrinks or drops it like any other', () => {
+  it('clamps a Free tile into bounds and shrinks or drops it like any other', () => {
     const desktop = stateOn(DESKTOP, [
       {
         id: 'default',
         tiles: [
-          rawTile({ id: 'float-ok', col: 0, row: 0, type: 'flex', size: { w: 4, h: 2 }, float: { x: 5, y: 3 } }),
-          rawTile({ id: 'float-gone', col: 0, row: 2, type: 'huge', float: { x: 0, y: 2 } }),
+          rawTile({ id: 'float-ok', col: 0, row: 0, type: 'flex', size: { w: 4, h: 2 }, float: { x: 5, y: 3, free: true } }),
+          rawTile({ id: 'float-gone', col: 0, row: 2, type: 'huge', float: { x: 0, y: 2, free: true } }),
         ],
       },
     ]);
     const result = engineFor(PHONE).reflow(desktop);
     const tile = result.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('float-ok'));
-    expect(tile).toMatchObject({ size: { w: 2, h: 2 }, float: { x: 0, y: 2 } });
+    expect(tile).toMatchObject({ size: { w: 2, h: 2 }, float: { x: 0, y: 2, free: true } });
     expect(result.state.boards[0]?.tiles.some((candidate) => candidate.id === tileId('float-gone'))).toBe(false);
     expect(result.changes).toContainEqual({ tile: tileId('float-gone'), board: boardId('default'), kind: ReflowChangeKind.Dropped });
+  });
+
+  it('re-places a snapped Overlay tile within the Overlay layer, pushing another', () => {
+    const desktop = stateOn(DESKTOP, [
+      {
+        id: 'default',
+        tiles: [
+          rawTile({ id: 'over-1', col: 0, row: 0, type: 'small', float: { x: 0, y: 0 } }),
+          rawTile({ id: 'over-2', col: 0, row: 0, type: 'small', float: { x: 5, y: 3 } }),
+        ],
+      },
+    ]);
+    const result = engineFor(PHONE).reflow(desktop);
+    const one = result.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('over-1'));
+    const two = result.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('over-2'));
+    expect(one?.float).toEqual({ x: 0, y: 0 });
+    expect(two?.float?.free).toBeUndefined();
+    expect(Number.isInteger(two?.float?.x)).toBe(true);
+  });
+
+  it('falls back to Free, clamped, when a snapped Overlay tile has nowhere to go', () => {
+    const desktop = stateOn(DESKTOP, [
+      {
+        id: 'default',
+        tiles: [
+          rawTile({ id: 'over-1', col: 0, row: 0, type: 'small', float: { x: 0, y: 0 } }),
+          rawTile({ id: 'over-2', col: 0, row: 0, type: 'small', float: { x: 1, y: 0 } }),
+        ],
+      },
+    ]);
+    const result = engineFor({ cols: 1, rows: 1 }).reflow(desktop);
+    const two = result.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('over-2'));
+    expect(two?.float?.free).toBe(true);
   });
 
   it('restores a saved layout exactly on an unedited round trip, and keeps other breakpoints untouched by an edit', () => {

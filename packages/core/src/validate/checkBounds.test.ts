@@ -39,8 +39,24 @@ describe('checkBounds', () => {
     expect(issues[0]?.kind).toBe(IssueKind.OutOfBounds);
   });
 
-  it('exempts a floating tile, even one entirely off the board', () => {
-    const issues = checkBounds(candidateWith({ col: cell(-50), row: cell(-50), float: { x: -50, y: -50 } }), CTX);
+  it('exempts a Free tile, even one entirely off the board', () => {
+    const issues = checkBounds(candidateWith({ col: cell(-50), row: cell(-50), float: { x: -50, y: -50, free: true } }), CTX);
+    expect(issues).toEqual([]);
+  });
+
+  it('reports OutOfBounds for a snapped Overlay tile off the board', () => {
+    const issues = checkBounds(candidateWith({ col: cell(0), row: cell(0), float: { x: -1, y: 0 } }), CTX);
+    expect(issues).toEqual([{ kind: IssueKind.OutOfBounds, board: boardId('default'), tile: tileId('t0'), message: 'Tile t0 lies outside the board.' }]);
+  });
+
+  it('reports OutOfBounds for a snapped Overlay tile at a non-integer position', () => {
+    const issues = checkBounds(candidateWith({ col: cell(0), row: cell(0), float: { x: 1.5, y: 0 } }), CTX);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]?.kind).toBe(IssueKind.OutOfBounds);
+  });
+
+  it('reports nothing for a snapped Overlay tile inside the board', () => {
+    const issues = checkBounds(candidateWith({ col: cell(0), row: cell(0), float: { x: 1, y: 1 } }), CTX);
     expect(issues).toEqual([]);
   });
 });

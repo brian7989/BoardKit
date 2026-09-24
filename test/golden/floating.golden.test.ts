@@ -48,9 +48,62 @@ describe('setFloating / moveFloating (golden fixtures)', () => {
     expect(result.value.state.boards[0]?.tiles[0]).not.toHaveProperty('float');
   });
 
-  it('moveFloating repositions a floating tile freely, even right on top of another tile', () => {
+  // SetFloating alone enters the snapped Overlay layer (see the SetFloatFree fixtures below for
+  // that); these fixtures cover Free's continuous, collision-free behaviour, unchanged from
+  // before layers existed, reached via the explicit SetFloatFree opt-in.
+  function floatFree(engine: ReturnType<typeof makeTestEngine>, state: Parameters<typeof engine.apply>[0], tile: string) {
+    const floated = engine.apply(state, { type: OpType.SetFloating, board: DEFAULT_BOARD, tile: tileId(tile), floating: true });
+    if (!floated.ok) throw new Error('fixture setFloating should succeed');
+    const freed = engine.apply(floated.value.state, { type: OpType.SetFloatFree, board: DEFAULT_BOARD, tile: tileId(tile), free: true });
+    if (!freed.ok) throw new Error('fixture setFloatFree should succeed');
+    return freed.value.state;
+  }
+
+  it('moveFloating repositions a Free tile freely, even right on top of another tile', () => {
     const engine = makeTestEngine();
     const parsed = engine.parse(rawState([{ id: 't0', col: 0, row: 0 }, { id: 't1', col: 2, row: 2 }]));
+    if (!parsed.ok) throw new Error('fixture should parse');
+    const state = floatFree(engine, parsed.value, 't0');
+
+    const op: MoveFloatingOp = { type: OpType.MoveFloating, board: DEFAULT_BOARD, tile: tileId('t0'), to: { x: 2.4, y: 1.7 } };
+    const result = engine.apply(state, op);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const t0 = result.value.state.boards[0]?.tiles.find((tile) => tile.id === 't0');
+    expect(t0).toMatchObject({ float: { x: 2.4, y: 1.7, free: true } });
+    expect(engine.check(result.value.state)).toEqual([]);
+  });
+
+  it('clamps a Free tile to the board rather than letting it be dragged off the edge', () => {
+    const engine = makeTestEngine();
+    const parsed = engine.parse(rawState([{ id: 't0', col: 0, row: 0 }]));
+    if (!parsed.ok) throw new Error('fixture should parse');
+    const state = floatFree(engine, parsed.value, 't0');
+
+    const op: MoveFloatingOp = { type: OpType.MoveFloating, board: DEFAULT_BOARD, tile: tileId('t0'), to: { x: -1.7, y: 99 } };
+    const result = engine.apply(state, op);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // A 1x1 tile on a 4x4 grid: the furthest its origin can sit is (3, 3).
+    expect(result.value.state.boards[0]?.tiles[0]).toMatchObject({ float: { x: 0, y: GRID_ROWS - 1 } });
+  });
+
+  it('clamps a Free tile along one axis while leaving the other free, so an edge drag slides instead of sticking', () => {
+    const engine = makeTestEngine();
+    const parsed = engine.parse(rawState([{ id: 't0', col: 0, row: 0 }]));
+    if (!parsed.ok) throw new Error('fixture should parse');
+    const state = floatFree(engine, parsed.value, 't0');
+
+    const op: MoveFloatingOp = { type: OpType.MoveFloating, board: DEFAULT_BOARD, tile: tileId('t0'), to: { x: 12, y: 1.25 } };
+    const result = engine.apply(state, op);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.state.boards[0]?.tiles[0]).toMatchObject({ float: { x: GRID_COLS - 1, y: 1.25 } });
+  });
+
+  it('moveFloating rounds a snapped Overlay tile to the nearest cell', () => {
+    const engine = makeTestEngine();
+    const parsed = engine.parse(rawState([{ id: 't0', col: 0, row: 0 }]));
     if (!parsed.ok) throw new Error('fixture should parse');
     const floated = engine.apply(parsed.value, { type: OpType.SetFloating, board: DEFAULT_BOARD, tile: tileId('t0'), floating: true });
     if (!floated.ok) throw new Error('fixture setFloating should succeed');
@@ -59,37 +112,8 @@ describe('setFloating / moveFloating (golden fixtures)', () => {
     const result = engine.apply(floated.value.state, op);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.state.boards[0]?.tiles[0]).toMatchObject({ float: { x: 2.4, y: 1.7 } });
+    expect(result.value.state.boards[0]?.tiles[0]).toMatchObject({ float: { x: 2, y: 2 } });
     expect(engine.check(result.value.state)).toEqual([]);
-  });
-
-  it('clamps a floating tile to the board rather than letting it be dragged off the edge', () => {
-    const engine = makeTestEngine();
-    const parsed = engine.parse(rawState([{ id: 't0', col: 0, row: 0 }]));
-    if (!parsed.ok) throw new Error('fixture should parse');
-    const floated = engine.apply(parsed.value, { type: OpType.SetFloating, board: DEFAULT_BOARD, tile: tileId('t0'), floating: true });
-    if (!floated.ok) throw new Error('fixture setFloating should succeed');
-
-    const op: MoveFloatingOp = { type: OpType.MoveFloating, board: DEFAULT_BOARD, tile: tileId('t0'), to: { x: -1.7, y: 99 } };
-    const result = engine.apply(floated.value.state, op);
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    // A 1x1 tile on a 4x4 grid: the furthest its origin can sit is (3, 3).
-    expect(result.value.state.boards[0]?.tiles[0]).toMatchObject({ float: { x: 0, y: GRID_ROWS - 1 } });
-  });
-
-  it('clamps along one axis while leaving the other free, so an edge drag slides instead of sticking', () => {
-    const engine = makeTestEngine();
-    const parsed = engine.parse(rawState([{ id: 't0', col: 0, row: 0 }]));
-    if (!parsed.ok) throw new Error('fixture should parse');
-    const floated = engine.apply(parsed.value, { type: OpType.SetFloating, board: DEFAULT_BOARD, tile: tileId('t0'), floating: true });
-    if (!floated.ok) throw new Error('fixture setFloating should succeed');
-
-    const op: MoveFloatingOp = { type: OpType.MoveFloating, board: DEFAULT_BOARD, tile: tileId('t0'), to: { x: 12, y: 1.25 } };
-    const result = engine.apply(floated.value.state, op);
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.value.state.boards[0]?.tiles[0]).toMatchObject({ float: { x: GRID_COLS - 1, y: 1.25 } });
   });
 
   it('rejects moveFloating on a tile that is not floating', () => {
@@ -131,13 +155,12 @@ describe('setFloating / moveFloating (golden fixtures)', () => {
     expect(engine.check(result.value.state)).toEqual([]);
   });
 
-  it('grounds a float dragged hard against the edge onto the last cell, never out of bounds', () => {
+  it('grounds a Free tile dragged hard against the edge onto the last cell, never out of bounds', () => {
     const engine = makeTestEngine();
     const parsed = engine.parse(rawState([{ id: 't0', col: 0, row: 0 }]));
     if (!parsed.ok) throw new Error('fixture should parse');
-    const floated = engine.apply(parsed.value, { type: OpType.SetFloating, board: DEFAULT_BOARD, tile: tileId('t0'), floating: true });
-    if (!floated.ok) throw new Error('fixture setFloating should succeed');
-    const moved = engine.apply(floated.value.state, { type: OpType.MoveFloating, board: DEFAULT_BOARD, tile: tileId('t0'), to: { x: 99, y: 99 } });
+    const state = floatFree(engine, parsed.value, 't0');
+    const moved = engine.apply(state, { type: OpType.MoveFloating, board: DEFAULT_BOARD, tile: tileId('t0'), to: { x: 99, y: 99 } });
     if (!moved.ok) throw new Error('fixture moveFloating should succeed');
 
     const op: SetFloatingOp = { type: OpType.SetFloating, board: DEFAULT_BOARD, tile: tileId('t0'), floating: false };

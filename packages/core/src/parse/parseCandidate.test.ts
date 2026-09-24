@@ -33,6 +33,22 @@ describe('parseCandidate', () => {
     expect(result).toEqual({ ok: true, value: { grid: VALID.grid, boards: VALID.boards, layouts: {} } });
   });
 
+  it('migrates a v2 tile float to Free, preserving its old collision-free behaviour', () => {
+    const tile = { id: 't0', col: 0, row: 0, size: { w: 1, h: 1 }, active: 0, items: [{ id: 'w0', type: 'x' }], float: { x: 1.5, y: 2.5 } };
+    const result = parseCandidate({ ...VALID, version: 2, boards: [{ id: 'default', tiles: [tile] }] });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.boards[0]?.tiles[0]?.float).toEqual({ x: 1.5, y: 2.5, free: true });
+  });
+
+  it('parses a current-version tile float as snapped Overlay by default, not Free', () => {
+    const tile = { id: 't0', col: 0, row: 0, size: { w: 1, h: 1 }, active: 0, items: [{ id: 'w0', type: 'x' }], float: { x: 1, y: 1 } };
+    const result = parseCandidate({ ...VALID, boards: [{ id: 'default', tiles: [tile] }] });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.boards[0]?.tiles[0]?.float).toEqual({ x: 1, y: 1 });
+  });
+
   it('parses a saved layouts map alongside boards', () => {
     const layouts = { '4x4': [{ tile: 't0', board: 'default', col: 0, row: 0, size: { w: 1, h: 1 } }] };
     const result = parseCandidate({ ...VALID, layouts });

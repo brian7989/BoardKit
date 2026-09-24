@@ -125,4 +125,33 @@ describe('resize', () => {
     expect(searchSpy).not.toHaveBeenCalled();
     searchSpy.mockRestore();
   });
+
+  it('grows a snapped Overlay tile in place, pushing another Overlay tile out of the way', () => {
+    const engine = makeEngine();
+    const first = engine.apply(engine.empty(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('t0'),
+      widget: { id: widgetId('w0'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 0, y: 0 },
+    });
+    if (!first.ok) throw new Error('fixture add should succeed');
+    const second = engine.apply(first.value.state, {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('t1'),
+      widget: { id: widgetId('w1'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 1, y: 0 },
+    });
+    if (!second.ok) throw new Error('fixture add should succeed');
+
+    const result = engine.apply(second.value.state, { type: OpType.Resize, board: BOARD, tile: tileId('t0'), size: SIZE_BIG });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const tiles = result.value.state.boards[0]?.tiles ?? [];
+    expect(tiles.find((tile) => tile.id === tileId('t0'))?.float).toEqual({ x: 0, y: 0 });
+    expect(tiles.find((tile) => tile.id === tileId('t1'))?.float).not.toEqual({ x: 1, y: 0 });
+  });
 });

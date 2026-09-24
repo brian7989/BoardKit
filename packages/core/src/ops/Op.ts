@@ -11,6 +11,7 @@ import type { AddBoardOp } from './handlers/addBoard.js';
 import type { RemoveBoardOp } from './handlers/removeBoard.js';
 import type { SetFloatingOp } from './handlers/setFloating.js';
 import type { MoveFloatingOp } from './handlers/moveFloating.js';
+import type { SetFloatFreeOp } from './handlers/setFloatFree.js';
 
 /** Every kind of change that can be dispatched against a `BoardsState`. */
 export type Op =
@@ -26,4 +27,5 @@ export type Op =
   | AddBoardOp
   | RemoveBoardOp
   | SetFloatingOp
-  | MoveFloatingOp;
+  | MoveFloatingOp
+  | SetFloatFreeOp;
