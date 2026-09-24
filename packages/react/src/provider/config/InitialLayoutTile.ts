@@ -13,6 +13,9 @@ export interface InitialLayoutTile {
   readonly props?: Readonly<Record<string, unknown>>;
   readonly name?: string;
   readonly page?: number;
-  /** Places this tile already floating at this fractional position, instead of onto the grid. */
-  readonly float?: { readonly x: number; readonly y: number };
+  /**
+   * Places this tile already floating at this position, instead of onto the grid: snapped into
+   * the Overlay layer by default, or unsnapped and collision-free with `free: true`.
+   */
+  readonly float?: { readonly x: number; readonly y: number; readonly free?: boolean };
 }

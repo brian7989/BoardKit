@@ -12,7 +12,7 @@ export interface ResolvedInitialTile {
   readonly size: Size;
   readonly widget: WidgetInstance;
   readonly tileId: string;
-  readonly float?: { readonly x: number; readonly y: number };
+  readonly float?: { readonly x: number; readonly y: number; readonly free?: boolean };
 }
 
 /** Resolves one layout entry's manifest, size, ids and widget instance, or null if unregistered. */

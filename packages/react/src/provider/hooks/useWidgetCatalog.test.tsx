@@ -31,6 +31,8 @@ function CatalogProbe() {
       <span data-testid="types">{captured.widgets.map((widget) => widget.type).join(',')}</span>
       <button onClick={() => captured?.add('label')}>add-default</button>
       <button onClick={() => captured?.add('label', { size: SIZE_WIDE })}>add-wide</button>
+      <button onClick={() => captured?.add('label', { float: { x: 1, y: 1 } })}>add-snapped</button>
+      <button onClick={() => captured?.add('label', { float: { x: 1.4, y: 1.6, free: true } })}>add-free</button>
     </div>
   );
 }
@@ -76,6 +78,30 @@ describe('useWidgetCatalog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'add-wide' }));
 
     expect(committed?.boards[0]?.tiles[0]?.size).toEqual(SIZE_WIDE);
+  });
+
+  it('add(type, { float }) places it snapped into the Overlay layer by default', () => {
+    render(
+      <BoardProvider config={config} defaultValue={config.engine.empty()} onChange={(next) => (committed = next)}>
+        <CatalogProbe />
+      </BoardProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'add-snapped' }));
+
+    expect(committed?.boards[0]?.tiles[0]?.float).toEqual({ x: 1, y: 1 });
+  });
+
+  it('add(type, { float: { free: true } }) places it Free, fractional and unclamped by the grid', () => {
+    render(
+      <BoardProvider config={config} defaultValue={config.engine.empty()} onChange={(next) => (committed = next)}>
+        <CatalogProbe />
+      </BoardProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'add-free' }));
+
+    expect(committed?.boards[0]?.tiles[0]?.float).toEqual({ x: 1.4, y: 1.6, free: true });
   });
 
   it('add(type) throws for an unregistered type', () => {

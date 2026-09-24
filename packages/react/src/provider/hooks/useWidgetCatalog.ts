@@ -9,8 +9,11 @@ import type { WidgetManifest } from '../../widget/index.js';
 export interface AddWidgetOptions {
   readonly size?: SizeInput;
   readonly at?: Point<Cell>;
-  /** Adds the widget already floating at this fractional position, instead of onto the grid. */
-  readonly float?: { readonly x: number; readonly y: number };
+  /**
+   * Adds the widget already floating at this position, instead of onto the grid: snapped into
+   * the Overlay layer by default, or unsnapped and collision-free with `free: true`.
+   */
+  readonly float?: { readonly x: number; readonly y: number; readonly free?: boolean };
 }
 
 /** The result of `useWidgetCatalog`: every registered widget, plus `add` to place one. */

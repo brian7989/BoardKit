@@ -45,7 +45,12 @@ function Label({ props }: WidgetProps<LabelProps>) {
 
 function TestChrome({ tile }: TileOverlayProps) {
   const { float } = useTile(tile);
-  return <button onClick={() => float.toggle()}>{float.isFloating ? 'Unfloat' : 'Float'}</button>;
+  return (
+    <>
+      <button onClick={() => float.toggle()}>{float.isFloating ? 'Unfloat' : 'Float'}</button>
+      <button onClick={() => float.setFree(!float.isFree)}>{float.isFree ? 'Snap' : 'Free'}</button>
+    </>
+  );
 }
 
 const labelWidget = defineWidget<LabelProps>({ type: 'label', title: 'Label', sizes: [SIZE_SMALL], component: Label });
@@ -72,6 +77,10 @@ function getTileElement(): Element {
 
 function enterFloat(): void {
   fireEvent.click(screen.getByRole('button', { name: 'Float' }));
+}
+
+function enterFree(): void {
+  fireEvent.click(screen.getByRole('button', { name: 'Free' }));
 }
 
 beforeEach(() => {
@@ -127,7 +136,7 @@ describe('floating a tile', () => {
     expect(getTileElement()).not.toHaveAttribute('data-bk-floating');
   });
 
-  it('drags a floating tile freely, not snapped to the grid', () => {
+  it('drags a snapped (Overlay) floating tile, rounding to the nearest cell', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     const { rerender } = render(
       <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
@@ -138,6 +147,76 @@ describe('floating a tile', () => {
     enterFloat();
     let state = onChange.mock.calls.at(-1)?.[0];
     if (!state) throw new Error('expected a committed state after floating');
+    rerender(
+      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    fireEvent.pointerDown(getTileElement(), { clientX: 10, clientY: 10, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 60, clientY: 35 });
+    fireEvent.pointerUp(window, { clientX: 60, clientY: 35 });
+    fireEvent.click(window);
+
+    state = onChange.mock.calls.at(-1)?.[0];
+    if (!state) throw new Error('expected a committed state after dragging');
+    // 4x4 grid at 100px/cell: moving 50px right, 25px down is +0.5 cols, +0.25 rows, rounded to (1, 0).
+    const dragged = state.boards[0]?.tiles[0];
+    expect(dragged?.float).toEqual({ x: 1, y: 0 });
+  });
+
+  it('drags a snapped floating tile, pushing another Overlay tile out of the way', () => {
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    const seeded = config.engine.apply(seedState(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('t2'),
+      widget: { id: widgetId('w2'), type: 'label', props: { label: 'other' } },
+      size: SIZE_SMALL,
+      float: { x: 1, y: 0 },
+    });
+    if (!seeded.ok) throw new Error('fixture add should succeed');
+
+    const { rerender } = render(
+      <BoardProvider config={config} defaultValue={seeded.value.state} onChange={onChange} tileOverlay={TestChrome}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    enterFloat();
+    const state = onChange.mock.calls.at(-1)?.[0];
+    if (!state) throw new Error('expected a committed state after floating');
+    rerender(
+      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    fireEvent.pointerDown(getTileElement(), { clientX: 10, clientY: 10, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 110, clientY: 10 });
+    fireEvent.pointerUp(window, { clientX: 110, clientY: 10 });
+    fireEvent.click(window);
+
+    const after = onChange.mock.calls.at(-1)?.[0];
+    if (!after) throw new Error('expected a committed state after dragging');
+    const tiles = after.boards[0]?.tiles ?? [];
+    expect(tiles.find((tile) => tile.id === tileId('t1'))?.float).toEqual({ x: 1, y: 0 });
+    expect(tiles.find((tile) => tile.id === tileId('t2'))?.float).not.toEqual({ x: 1, y: 0 });
+  });
+
+  it('drags a Free tile continuously, not snapped to the grid', () => {
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    const { rerender } = render(
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    enterFloat();
+    enterFree();
+    let state = onChange.mock.calls.at(-1)?.[0];
+    if (!state) throw new Error('expected a committed state after going free');
+    expect(state.boards[0]?.tiles[0]?.float?.free).toBe(true);
     rerender(
       <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
         <Board />
@@ -167,8 +246,9 @@ describe('floating a tile', () => {
     );
 
     enterFloat();
+    enterFree();
     let state = onChange.mock.calls.at(-1)?.[0];
-    if (!state) throw new Error('expected a committed state after floating');
+    if (!state) throw new Error('expected a committed state after going free');
     rerender(
       <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
         <Board />
