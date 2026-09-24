@@ -39,16 +39,24 @@ function pointOf(event: { clientX: number; clientY: number }): Point<Px> {
 
 type PointerHandler = (event: PointerEvent) => void;
 
+// Once the tile moves off the press point, the browser may start a native drag of whatever is
+// now under it (an <img>, say), which fires pointercancel and kills our gesture.
+function preventNativeDrag(event: Event): void {
+  event.preventDefault();
+}
+
 function addPointerListeners(onMove: PointerHandler, onUp: PointerHandler, onCancel: () => void): void {
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onCancel);
+  window.addEventListener('dragstart', preventNativeDrag, true);
 }
 
 function removePointerListeners(onMove: PointerHandler, onUp: PointerHandler, onCancel: () => void): void {
   window.removeEventListener('pointermove', onMove);
   window.removeEventListener('pointerup', onUp);
   window.removeEventListener('pointercancel', onCancel);
+  window.removeEventListener('dragstart', preventNativeDrag, true);
 }
 
 // Swallows the click the browser synthesizes right after pointerup, so it doesn't reach whatever the tile was dropped on.

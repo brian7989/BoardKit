@@ -111,6 +111,23 @@ describe('drag interaction', () => {
     expect(nextState?.boards[0]?.tiles[0]).toMatchObject({ col: 1, row: 0 });
   });
 
+  it('blocks the native browser drag only while a tile gesture is under way', () => {
+    render(
+      <BoardProvider config={config} defaultValue={seedState()}>
+        <Board />
+      </BoardProvider>,
+    );
+    const nativeDrag = (): boolean => !document.body.dispatchEvent(new Event('dragstart', { bubbles: true, cancelable: true }));
+
+    fireEvent.pointerDown(getTileElement(), { clientX: 50, clientY: 50, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 90, clientY: 90 });
+    expect(nativeDrag()).toBe(true);
+
+    fireEvent.pointerUp(window, { clientX: 90, clientY: 90 });
+    fireEvent.click(window);
+    expect(nativeDrag()).toBe(false);
+  });
+
   it('does not attach a pointer handler when locked', () => {
     render(
       <BoardProvider config={config} defaultValue={seedState()} locked>
