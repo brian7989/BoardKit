@@ -323,3 +323,32 @@ describe('step: events a phase does not react to', () => {
     });
   });
 });
+
+describe('step: dragging a snapped floating tile', () => {
+  function seedFloating(engine: Engine): BoardsState {
+    const result = engine.apply(engine.empty(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('f0'),
+      widget: { id: widgetId('f0-w'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      float: { x: 2, y: 1 },
+    });
+    if (!result.ok) throw new Error('fixture seed failed');
+    return result.value.state;
+  }
+
+  it('grabs relative to the float position, previews and commits a MoveFloating', () => {
+    const engine = makeEngine();
+    const ctx = makeContext(engine, seedFloating(engine));
+
+    const armed = step(ctx, { phase: InteractionPhase.Idle }, { type: InteractionEventType.Grab, tile: tileId('f0'), at: { x: px(250), y: px(150) } });
+    expect(armed.state).toMatchObject({ phase: InteractionPhase.Armed, grabOffset: { x: 50, y: 50 } });
+
+    const dragging = step(ctx, armed.state, { type: InteractionEventType.Move, at: { x: px(350), y: px(150) } });
+    expect(dragging.state).toMatchObject({ phase: InteractionPhase.Dragging, target: { x: 3, y: 1 }, preview: { ok: true } });
+
+    const released = step(ctx, dragging.state, { type: InteractionEventType.Release, at: { x: px(350), y: px(150) } });
+    expect(released.effects[0]).toMatchObject({ type: EffectType.Commit, op: { type: OpType.MoveFloating, tile: tileId('f0'), to: { x: 3, y: 1 } } });
+  });
+});

@@ -116,7 +116,7 @@ describe('moveFloating', () => {
     expect(tiles.find((tile) => tile.id === tileId('t1'))?.float).not.toEqual({ x: 2, y: 0 });
   });
 
-  it('snaps a snapped Overlay tile back to its own cell when the target is impossible', () => {
+  it('rejects an impossible snapped Overlay target instead of moving the tile elsewhere', () => {
     const engine = createEngine({ grid: { cols: 2, rows: 1 }, catalog: { [WIDGET_TYPE]: { sizes: [SIZE_SMALL] } } });
     const withOther = engine.apply(seedOverlay(engine, { x: 0, y: 0 }), {
       type: OpType.Add,
@@ -128,10 +128,23 @@ describe('moveFloating', () => {
     });
     if (!withOther.ok) throw new Error('fixture add should succeed');
 
-    const result = engine.apply(withOther.value.state, { type: OpType.MoveFloating, board: BOARD, tile: tileId('t0'), to: { x: 5, y: 5 } });
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const tile = result.value.state.boards[0]?.tiles.find((candidate) => candidate.id === tileId('t0'));
-    expect(tile?.float).toEqual({ x: 0, y: 0 });
+    const outside = engine.apply(withOther.value.state, { type: OpType.MoveFloating, board: BOARD, tile: tileId('t0'), to: { x: 5, y: 5 } });
+    expect(outside.ok ? null : outside.error.reason).toBe(RejectReason.OutOfBounds);
+  });
+
+  it('rejects a snapped Overlay target the other Overlay tiles cannot make room for', () => {
+    const engine = createEngine({ grid: { cols: 3, rows: 1 }, catalog: { [WIDGET_TYPE]: { sizes: [SIZE_SMALL, { w: cell(2), h: cell(1) }] } } });
+    const withOther = engine.apply(seedOverlay(engine, { x: 0, y: 0 }), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('t1'),
+      widget: { id: widgetId('w1'), type: WIDGET_TYPE },
+      size: { w: cell(2), h: cell(1) },
+      float: { x: 1, y: 0 },
+    });
+    if (!withOther.ok) throw new Error('fixture add should succeed');
+
+    const blocked = engine.apply(withOther.value.state, { type: OpType.MoveFloating, board: BOARD, tile: tileId('t0'), to: { x: 1, y: 0 } });
+    expect(blocked.ok ? null : blocked.error.reason).toBe(RejectReason.NoValidArrangement);
   });
 });

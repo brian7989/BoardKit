@@ -154,13 +154,13 @@ describe('floating a tile', () => {
     );
 
     fireEvent.pointerDown(getTileElement(), { clientX: 10, clientY: 10, button: 0 });
-    fireEvent.pointerMove(window, { clientX: 60, clientY: 35 });
-    fireEvent.pointerUp(window, { clientX: 60, clientY: 35 });
+    fireEvent.pointerMove(window, { clientX: 100, clientY: 35 });
+    fireEvent.pointerUp(window, { clientX: 100, clientY: 35 });
     fireEvent.click(window);
 
     state = onChange.mock.calls.at(-1)?.[0];
     if (!state) throw new Error('expected a committed state after dragging');
-    // 4x4 grid at 100px/cell: moving 50px right, 25px down is +0.5 cols, +0.25 rows, rounded to (1, 0).
+    // 4x4 grid at 100px/cell: moving 90px right, 25px down is +0.9 cols, +0.25 rows, snapped to (1, 0).
     const dragged = state.boards[0]?.tiles[0];
     expect(dragged?.float).toEqual({ x: 1, y: 0 });
   });
@@ -192,10 +192,27 @@ describe('floating a tile', () => {
       </BoardProvider>,
     );
 
+    const otherCell = (): string => {
+      const style = document.querySelector<HTMLElement>('[data-bk-tile-id="t2"]')?.style;
+      return `${style?.getPropertyValue('--bk-col')},${style?.getPropertyValue('--bk-row')}`;
+    };
+    const commitsBeforeDrag = onChange.mock.calls.length;
     fireEvent.pointerDown(getTileElement(), { clientX: 10, clientY: 10, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 110, clientY: 10 });
+
+    // Mid-drag is a preview: nothing commits, the pushed tile moves aside, and a floating placeholder marks the drop.
+    expect(onChange.mock.calls.length).toBe(commitsBeforeDrag);
+    expect(otherCell()).not.toBe('1,0');
+    expect(document.querySelector('[data-bk-placeholder="true"]')).toHaveAttribute('data-bk-floating', 'true');
+
+    // Moving back springs the pushed tile home, since each preview solves from the grab-time state.
+    fireEvent.pointerMove(window, { clientX: 12, clientY: 10 });
+    expect(otherCell()).toBe('1,0');
+
     fireEvent.pointerMove(window, { clientX: 110, clientY: 10 });
     fireEvent.pointerUp(window, { clientX: 110, clientY: 10 });
     fireEvent.click(window);
+    expect(onChange.mock.calls.length).toBe(commitsBeforeDrag + 1);
 
     const after = onChange.mock.calls.at(-1)?.[0];
     if (!after) throw new Error('expected a committed state after dragging');

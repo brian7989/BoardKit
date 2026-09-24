@@ -11,7 +11,7 @@ import type { Point } from '../../shared/geometry/Point.js';
 import type { Px } from '../../shared/units/Px.js';
 import type { StepContext } from '../StepContext.js';
 import type { StepResult } from './StepResult.js';
-import { findTile } from '../../model/index.js';
+import { cellOriginOf, findTile } from '../../model/index.js';
 import { noEffect } from './noEffect.js';
 import { cancelInteraction } from './cancelInteraction.js';
 
@@ -27,7 +27,7 @@ function stepMove(ctx: StepContext, state: ArmedInteractionState, at: Point<Px>)
     boardRectPx: ctx.boardRectPx,
     grid: ctx.state.grid,
     size: tile.size,
-    previous: { x: tile.col, y: tile.row },
+    previous: cellOriginOf(tile),
     hysteresisFraction: ctx.options.hysteresisFraction,
   });
   const { result } = previewMove(ctx, state.tile, target);

@@ -49,13 +49,13 @@ function moveFree(input: MoveInput): OpOutcome {
   return ok({ candidate: { grid: state.grid, boards }, changes: [change] });
 }
 
-// Rejects rather than clamping: an impossible drop should not silently jump the tile elsewhere.
+// Rejects rather than clamping or relocating: an impossible drop should not jump the tile elsewhere.
 function moveOverlay(input: MoveInput): OpOutcome {
   const { ctx, state, board, tile, to } = input;
   const float = tile.float!;
   const from = rectOfTile({ x: cell(Math.round(float.x)), y: cell(Math.round(float.y)) }, tile.size);
   const at: { readonly x: Cell; readonly y: Cell } = { x: cell(Math.round(to.x)), y: cell(Math.round(to.y)) };
-  const placed = placeOverlay({ board, tile, size: tile.size, at, ctx });
+  const placed = placeOverlay({ board, tile, size: tile.size, at, ctx, exact: true });
   if (!placed.ok) return placed;
 
   const change: Change = { tile: tile.id, board: board.id, kind: ChangeKind.Moved, from, to: rectOfTile(placed.value.at, tile.size) };

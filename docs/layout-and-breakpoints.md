@@ -107,10 +107,11 @@ float.setFree(true); // snapped → free, in place
 float.setFree(false); // free → snapped, rounding onto the Overlay layer's solver
 ```
 
-Dragging works from anywhere `dragFrom` allows (the whole tile, or just its header strip): a Free
-tile follows the pointer continuously, while a snapped Overlay tile rounds to the nearest cell and
-resolves like a grid move — pushing other Overlay tiles, and snapping back if the drop is
-impossible.
+Dragging works from anywhere `dragFrom` allows (the whole tile, or just its header strip). A Free
+tile follows the pointer and lands wherever it is dropped. A snapped Overlay tile drags exactly like
+a grid tile: it follows the pointer smoothly while a placeholder marks the cell it will land on,
+other Overlay tiles slide aside (and back, if you move on), and nothing is saved until release. An
+impossible drop snaps the tile back.
 
 Resizing, reflow onto a different breakpoint, and reloading saved state all stay layer-aware: an
 Overlay tile that can no longer fit its layer shrinks to a smaller allowed size first, and only

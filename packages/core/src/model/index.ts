@@ -5,6 +5,7 @@ export type { Tile } from './Tile.js';
 export { isStack, isFloating, isFree, firstItem, activeItem } from './Tile.js';
 export { TileLayer } from './TileLayer.js';
 export { layerOf } from './layerOf.js';
+export { cellOriginOf } from './cellOriginOf.js';
 export type { Board } from './Board.js';
 export { findBoard } from './findBoard.js';
 export { findTile } from './findTile.js';

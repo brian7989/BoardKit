@@ -69,6 +69,11 @@
   filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.24));
 }
 
+/* The held floater rises above its layer; its placeholder sits between the grid and the floaters. */
+[data-bk-tile-id][data-bk-floating='true'][data-bk-active='true'] {
+  z-index: 13;
+}
+
 [data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='tile'] {
   cursor: grab;
 }
@@ -97,6 +102,10 @@
   outline: 2px dashed rgba(37, 99, 235, 0.5);
   outline-offset: calc(-1 * (var(--bk-tile-gap) / 2 + 2px));
   clip-path: inset(calc(var(--bk-tile-gap) / 2));
+}
+
+[data-bk-placeholder='true'][data-bk-floating='true'] {
+  z-index: 11;
 }
 
 [data-bk-placeholder='true'][data-bk-valid='false'] {

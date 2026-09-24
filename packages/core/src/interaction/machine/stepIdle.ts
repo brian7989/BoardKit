@@ -7,7 +7,7 @@ import type { Px } from '../../shared/units/Px.js';
 import type { Cell } from '../../shared/units/Cell.js';
 import type { StepContext } from '../StepContext.js';
 import type { StepResult } from './StepResult.js';
-import { findTile } from '../../model/index.js';
+import { cellOriginOf, findTile } from '../../model/index.js';
 import { noEffect } from './noEffect.js';
 
 type GrabEvent = Extract<InteractionEvent, { type: typeof InteractionEventType.Grab }>;
@@ -30,7 +30,7 @@ function stepGrab(ctx: StepContext, event: GrabEvent): StepResult {
       phase: InteractionPhase.Armed,
       tile: event.tile,
       origin: event.at,
-      grabOffset: grabOffsetOf(ctx, event.at, { x: tile.col, y: tile.row }),
+      grabOffset: grabOffsetOf(ctx, event.at, cellOriginOf(tile)),
     },
     effects: [],
   };

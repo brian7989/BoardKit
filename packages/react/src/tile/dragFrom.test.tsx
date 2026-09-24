@@ -170,15 +170,14 @@ describe('dragFrom', () => {
     );
     expect(tileElement()).toHaveAttribute('data-bk-floating', 'true');
 
-    // A body drag never attaches a window pointermove listener, so no further MoveFloating commits.
     const callsBeforeBodyDrag = onChange.mock.calls.length;
-    drag(screen.getByText('Alpha'), 60);
-    release(60);
+    drag(screen.getByText('Alpha'), 90);
+    release(90);
     expect(onChange.mock.calls.length).toBe(callsBeforeBodyDrag);
 
     const header = within(tileElement()).getByText('header:Label');
-    drag(header, 60);
-    release(60);
+    drag(header, 90);
+    release(90);
     const moved = onChange.mock.calls.at(-1)?.[0];
     expect(moved?.boards[0]?.tiles[0]?.float?.x).not.toBe(floated.boards[0]?.tiles[0]?.float?.x);
   });

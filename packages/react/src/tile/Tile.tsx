@@ -1,5 +1,5 @@
 import { memo, useContext, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
-import { activeItem, isFloating, type FractionalCell, type Tile as TileModel } from 'boardkit-core';
+import { activeItem, isFloating, layerOf, TileLayer, type FractionalCell, type Tile as TileModel } from 'boardkit-core';
 import { useBoardsConfig } from '../provider/internal/useBoardsConfig.js';
 import type { BoardsConfigContextValue } from '../provider/internal/BoardsConfigContext.js';
 import { DragFrom } from '../provider/DragFrom.js';
@@ -30,14 +30,14 @@ export interface TileProps {
 
 const INSTANT: CSSProperties = { transition: 'none' };
 
-// No transition while dragged/floating: every pointermove commits a new position, and an eased transition would chase the cursor.
-function tileTransitionStyle(active: boolean, floating: boolean, baseStyle: CSSProperties): CSSProperties {
-  return active || floating ? { ...baseStyle, ...INSTANT } : baseStyle;
+// No transition while held or Free: both follow the pointer every move, and an eased transition would chase the cursor.
+function tileTransitionStyle(active: boolean, free: boolean, baseStyle: CSSProperties): CSSProperties {
+  return active || free ? { ...baseStyle, ...INSTANT } : baseStyle;
 }
 
 function tilePosition(tile: TileModel, active: boolean, origin: FractionalCell | null): TilePosition {
-  if (tile.float) return { col: tile.float.x, row: tile.float.y };
   if (active && origin) return { col: origin.x, row: origin.y };
+  if (tile.float) return { col: tile.float.x, row: tile.float.y };
   return { col: tile.col, row: tile.row };
 }
 
@@ -46,8 +46,9 @@ interface DragTargets {
   readonly float: boolean;
 }
 
-function dragTargets(dragEnabled: boolean, floating: boolean): DragTargets {
-  return { grid: dragEnabled && !floating, float: dragEnabled && floating };
+// Grid and snapped Overlay tiles share the previewing drag; only Free tiles move directly.
+function dragTargets(dragEnabled: boolean, free: boolean): DragTargets {
+  return { grid: dragEnabled && !free, float: dragEnabled && free };
 }
 
 // A tile without a header strip has no other handle, so it always drags from the whole tile.
@@ -66,18 +67,18 @@ interface DragChrome {
 
 interface DragChromeInput {
   readonly dragEnabled: boolean;
-  readonly floating: boolean;
+  readonly free: boolean;
   readonly grid: UseDragGestureResult;
   readonly float: UseDragGestureResult;
 }
 
 // Only one of grid/float is ever enabled for a tile, so it's safe to take whichever fired.
 function dragChromeFor(input: DragChromeInput): DragChrome {
-  const { dragEnabled, floating, grid, float } = input;
+  const { dragEnabled, free, grid, float } = input;
   return {
-    ref: floating ? float.ref : grid.ref,
-    onPointerDown: dragEnabled ? (floating ? float.onPointerDown : grid.onPointerDown) : undefined,
-    onContextMenu: floating ? float.onContextMenu : grid.onContextMenu,
+    ref: free ? float.ref : grid.ref,
+    onPointerDown: dragEnabled ? (free ? float.onPointerDown : grid.onPointerDown) : undefined,
+    onContextMenu: free ? float.onContextMenu : grid.onContextMenu,
     lifted: grid.lifted || float.lifted,
   };
 }
@@ -124,23 +125,24 @@ function widgetContainerProps(tile: TileModel, config: BoardsConfigContextValue)
 function TileComponent({ tile }: TileProps) {
   const config = useBoardsConfig();
   const floating = isFloating(tile);
+  const free = layerOf(tile) === TileLayer.Free;
   const { enabled, dispatchAt, active, valid, origin } = useTileInteractionProps(tile.id, config.locked);
   const picking = useTilePickingMode(tile);
   const baseStyle = tileStyle(tilePosition(tile, active, origin), tile.size, config.grid);
   const dragEnabled = enabled && picking.mode === TilePickingMode.Idle;
-  const targets = dragTargets(dragEnabled, floating);
+  const targets = dragTargets(dragEnabled, free);
   const tileHeader = useContext(TileHeaderContext);
   const manifest = config.widgets.get(activeItem(tile).type);
   const hasHeader = tileHeaderPlacementFor(tileHeader !== null, manifest?.header) === TileHeaderPlacement.Strip;
   const dragFrom = resolveDragFrom(config.dragFrom, hasHeader);
   const gridDrag = useTilePointer({ tile: tile.id, enabled: targets.grid, dragFrom, dispatchAt });
   const floatDrag = useFloatDrag({ tile: tile.id, board: config.activeBoardId, enabled: targets.float, dragFrom, origin: tile.float ?? { x: tile.col, y: tile.row } });
-  const chrome = dragChromeFor({ dragEnabled, floating, grid: gridDrag, float: floatDrag });
+  const chrome = dragChromeFor({ dragEnabled, free, grid: gridDrag, float: floatDrag });
 
   return (
     <div
       ref={chrome.ref}
-      style={tileTransitionStyle(active, floating, baseStyle)}
+      style={tileTransitionStyle(active, free, baseStyle)}
       onPointerDown={chrome.onPointerDown}
       onContextMenu={chrome.onContextMenu}
       onClick={picking.onClick}

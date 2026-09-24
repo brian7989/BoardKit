@@ -15,6 +15,8 @@ export interface PlaceOverlayInput {
   readonly size: Size;
   readonly at: Point<Cell>;
   readonly ctx: EngineContext;
+  // A drag must land exactly where it was dropped, so it rejects instead of taking another spot.
+  readonly exact?: boolean;
 }
 
 export interface PlaceOverlayResult {
@@ -36,6 +38,7 @@ export function placeOverlay(input: PlaceOverlayInput): PlaceOverlayOutcome {
   const asGrid = overlayOthers.map(withFloatAsColRow);
   const solved = fitsBoard(pinnedRect, ctx) ? solve({ tiles: asGrid, pinnedTileId: tile.id, pinnedRect, ctx }) : null;
   if (solved) return { ok: true, value: place({ board, rest, overlayOthers, tile, size, at, positions: solved, boardId: board.id }) };
+  if (input.exact) return { ok: false, error: { reason: fitsBoard(pinnedRect, ctx) ? RejectReason.NoValidArrangement : RejectReason.OutOfBounds } };
 
   // findFreeSpace also reads col/row as the position, same as relocateTiles above.
   const spot = findFreeSpace({ tiles: asGrid, size, grid: ctx.grid, sizeOf: (candidate) => candidate.size });
