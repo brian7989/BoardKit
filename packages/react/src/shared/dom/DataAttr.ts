@@ -10,6 +10,7 @@ export const DataAttr = {
   NoDrag: 'data-bk-no-drag',
   StackRole: 'data-bk-stack-role',
   Floating: 'data-bk-floating',
+  Free: 'data-bk-free',
   TileFrame: 'data-bk-tile-frame',
   TileHeader: 'data-bk-tile-header',
   TileHeaderPlacement: 'data-bk-tile-header-placement',

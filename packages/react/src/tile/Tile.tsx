@@ -88,6 +88,7 @@ interface TileDomAttrsInput {
   readonly active: boolean;
   readonly valid: boolean;
   readonly floating: boolean;
+  readonly free: boolean;
   readonly lifted: boolean;
   readonly draggable: boolean;
   readonly dragFrom: DragFrom;
@@ -95,11 +96,11 @@ interface TileDomAttrsInput {
 }
 
 function tileDomAttrs(input: TileDomAttrsInput): Record<string, unknown> {
-  const { tile, active, valid, floating, lifted, draggable, dragFrom, pickingMode } = input;
+  const { tile, active, valid, floating, free, lifted, draggable, dragFrom, pickingMode } = input;
   return {
     ...tileInteractionDataAttributes(active, valid),
     ...tileStackDataAttributes(pickingMode),
-    ...tileFloatDataAttributes(floating),
+    ...tileFloatDataAttributes(floating, free),
     ...tileLiftedDataAttributes(lifted),
     ...tileDataAttributes(tile),
     ...tileDragFromDataAttributes(dragFrom),
@@ -146,7 +147,7 @@ function TileComponent({ tile }: TileProps) {
       onPointerDown={chrome.onPointerDown}
       onContextMenu={chrome.onContextMenu}
       onClick={picking.onClick}
-      {...tileDomAttrs({ tile, active, valid, floating, lifted: chrome.lifted, draggable: enabled, dragFrom, pickingMode: picking.mode })}
+      {...tileDomAttrs({ tile, active, valid, floating, free, lifted: chrome.lifted, draggable: enabled, dragFrom, pickingMode: picking.mode })}
     >
       <WidgetContainer {...widgetContainerProps(tile, config)} />
       <TileOverlay tile={tile} hasHeader={hasHeader} />

@@ -153,6 +153,7 @@ describe('floating a tile', () => {
       </BoardProvider>,
     );
 
+    expect(getTileElement()).not.toHaveAttribute('data-bk-free');
     fireEvent.pointerDown(getTileElement(), { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(window, { clientX: 100, clientY: 35 });
     fireEvent.pointerUp(window, { clientX: 100, clientY: 35 });
@@ -239,6 +240,7 @@ describe('floating a tile', () => {
         <Board />
       </BoardProvider>,
     );
+    expect(getTileElement()).toHaveAttribute('data-bk-free', 'true');
 
     fireEvent.pointerDown(getTileElement(), { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(window, { clientX: 60, clientY: 35 });

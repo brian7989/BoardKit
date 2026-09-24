@@ -7,8 +7,9 @@ export function tileDataAttributes(tile: Tile): Record<string, string> {
   return { [DataAttr.TileId]: tile.id };
 }
 
-export function tileFloatDataAttributes(floating: boolean): Record<string, string> {
-  return floating ? { [DataAttr.Floating]: 'true' } : {};
+export function tileFloatDataAttributes(floating: boolean, free: boolean): Record<string, string> {
+  if (!floating) return {};
+  return free ? { [DataAttr.Floating]: 'true', [DataAttr.Free]: 'true' } : { [DataAttr.Floating]: 'true' };
 }
 
 export function tileLiftedDataAttributes(lifted: boolean): Record<string, string> {

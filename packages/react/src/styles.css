@@ -69,9 +69,14 @@
   filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.24));
 }
 
-/* The held floater rises above its layer; its placeholder sits between the grid and the floaters. */
-[data-bk-tile-id][data-bk-floating='true'][data-bk-active='true'] {
+/* Free tiles sit above snapped floaters; a held floater rises above both, and its placeholder
+   sits between the grid and the floaters. */
+[data-bk-tile-id][data-bk-floating='true'][data-bk-free='true'] {
   z-index: 13;
+}
+
+[data-bk-tile-id][data-bk-floating='true'][data-bk-active='true'] {
+  z-index: 14;
 }
 
 [data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='tile'] {

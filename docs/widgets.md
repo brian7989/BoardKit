@@ -94,9 +94,9 @@ header matches its own body instead of defaulting to the host's usual tile look.
 
 ## Interactive controls: `noDragProps`
 
-A tile is always draggable from anywhere on it — including on top of your widget. A control that
-needs its own pointer gesture (a slider, a drag-to-reorder list, a canvas you pan) must opt out,
-or dragging it will instead drag the tile:
+A tile without a header strip, or any tile under `dragFrom="tile"`, drags from anywhere on it,
+including on top of your widget. There, a control that needs its own pointer gesture (a slider, a
+drag-to-reorder list, a canvas you pan) must opt out, or dragging it will instead drag the tile:
 
 ```tsx
 import { noDragProps } from 'boardkit-react';

@@ -27,6 +27,7 @@ The gutter between tiles, default `0px`. Set it on any ancestor of `<Board>` —
 | `data-bk-active` | A tile | `"true"` while a tile is actively being dragged or resized. |
 | `data-bk-valid` | A tile | `"true"`/`"false"` during an active drag: whether the current position is a legal drop. |
 | `data-bk-floating` | A tile | `"true"` for a tile currently floating above the grid (not just mid-drag). |
+| `data-bk-free` | A tile | `"true"` for a floating tile that moves freely rather than snapping. Free tiles stack above snapped floaters. |
 | `data-bk-placeholder` | The drop halo | `"true"` on the placeholder shown at the drop target mid-drag. |
 | `data-bk-stack-role` | A tile | During a "stack with…" pick: `"eligible"`, `"source"`, or `"ineligible"`. |
 | `data-bk-no-drag` | Your own elements | Set via `noDragProps()` — stops pointer activity there from starting a tile drag. |
