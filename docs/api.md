@@ -7,7 +7,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | Export | What it is |
 |---|---|
 | `BoardProvider` | Owns board state (controlled or uncontrolled) and provides it to everything below it. |
-| `BoardProviderProps` (type) | Its props: `config`, `value`/`onChange`, `storageKey`, `tileOverlay`, `tileHeader`, `onReject`, ... |
+| `BoardProviderProps` (type) | Its props: `config`, `value`/`onChange`, `storageKey`, `tileOverlay`, `tileHeader`, `dragFrom`, `onReject`, ... |
 | `defineBoards` | Builds the engine(s) and widget catalog once, from a grid (or breakpoints) and widget list. |
 | `DefineBoardsInput` (type) | Input to `defineBoards`. |
 | `BoardsConfig` (type) | What `defineBoards` returns and `BoardProvider` takes as `config`. |
@@ -17,6 +17,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | `InitialLayoutTile` (type) | One widget an uncontrolled board starts with — see `defineBoards`'s `initialLayout`. |
 | `ChangeMeta` (type) | `onChange`'s second argument: why the state changed (`'op'` or `'reflow'`). |
 | `ChangeReason` | The two `ChangeMeta` reasons, `'op'` and `'reflow'`. |
+| `DragFrom` | Where a tile's drag may start: `'header'` (default, header strip only) or `'tile'` (anywhere). |
 | `BoardsContextValue` (type) | The raw context value `useBoards` returns. |
 | `useBoards` | Escape hatch: raw state, dispatch, active board, and the engine. |
 | `useLocked` | Whether the board is currently read-only. |

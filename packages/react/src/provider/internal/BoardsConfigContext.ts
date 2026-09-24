@@ -2,6 +2,7 @@ import { createContext } from 'react';
 import type { BoardId, BoardsState, Engine, Op } from 'boardkit-core';
 import type { WidgetManifest } from '../../widget/index.js';
 import type { Dispatch } from './useDispatch.js';
+import type { DragFrom } from '../DragFrom.js';
 
 // Split from BoardsContextValue so a Tile can read it without subscribing to `state`, which changes on every committed op.
 export interface BoardsConfigContextValue {
@@ -12,6 +13,7 @@ export interface BoardsConfigContextValue {
   readonly designCellSize: number;
   readonly headerHeight: number;
   readonly locked: boolean;
+  readonly dragFrom: DragFrom;
   readonly activeBoardId: BoardId;
   readonly onWidgetError?: (error: Error, widgetType: string) => void;
   readonly dispatch: Dispatch;

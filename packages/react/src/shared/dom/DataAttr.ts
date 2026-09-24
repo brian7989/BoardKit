@@ -15,6 +15,7 @@ export const DataAttr = {
   TileHeaderPlacement: 'data-bk-tile-header-placement',
   TileBody: 'data-bk-tile-body',
   Empty: 'data-bk-empty',
+  DragFrom: 'data-bk-drag-from',
 } as const;
 
 export type DataAttr = ValueOf<typeof DataAttr>;

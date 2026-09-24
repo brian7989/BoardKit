@@ -23,9 +23,8 @@ function TileHeader({ tile, name }: TileHeaderProps) {
 
 Hand `BoardProvider` a `tileHeader` and BoardKit reserves a fixed strip above every widget's body
 for it — sized by `headerHeight` on `defineBoards` (design px, default `32`), and excluded from
-the widget's own `designSize` so a widget's layout never needs to know it exists. The strip is a
-drag grip like the rest of the tile — wrap only the buttons inside it in `noDragProps`, not the
-whole header.
+the widget's own `designSize` so a widget's layout never needs to know it exists. The strip is the
+tile's drag grip — wrap only the buttons inside it in `noDragProps`, not the whole header.
 
 A widget opts out of the strip entirely with `header: false` on its manifest (see
 [Widgets](widgets.md)); `tileOverlay` then receives `hasHeader: false` for that tile, so an
@@ -34,6 +33,18 @@ overlay can float its own chrome only where there's no strip to hold it.
 `TileHeaderProps` also carries `placement`, `'strip'` (the default) or `'overlay'`, so a header
 for a `header: false` widget can still render — as a floating overlay on top of the widget's body
 instead of a reserved strip — rather than being hidden outright.
+
+### Dragging by the header
+
+By default (`dragFrom="header"`) a tile with a header strip drags only from that strip — a click
+in the widget's body, on a table row, map or chart, never starts a drag. A tile with no strip
+(no `tileHeader`, `header: false`, or no strip room to hold it) still drags from anywhere on it,
+since it has no other handle. Pass `dragFrom="tile"` on `BoardProvider` to restore whole-tile
+dragging everywhere, as before.
+
+```tsx
+<BoardProvider config={boards} tileHeader={TileHeader} dragFrom="tile">
+```
 
 ## `tileOverlay`: decoration on top of a tile
 

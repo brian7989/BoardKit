@@ -2,12 +2,14 @@ import { memo, useContext, type CSSProperties, type MouseEvent as ReactMouseEven
 import { activeItem, isFloating, type FractionalCell, type Tile as TileModel } from 'boardkit-core';
 import { useBoardsConfig } from '../provider/internal/useBoardsConfig.js';
 import type { BoardsConfigContextValue } from '../provider/internal/BoardsConfigContext.js';
+import { DragFrom } from '../provider/DragFrom.js';
 import { useTilePointer, type UseDragGestureResult } from '../interaction/index.js';
 import { DataAttr } from '../shared/index.js';
 import { WidgetContainer, type WidgetContainerProps } from '../widget/index.js';
 import { tileStyle, type TilePosition } from './internal/tileStyle.js';
 import {
   tileDataAttributes,
+  tileDragFromDataAttributes,
   tileFloatDataAttributes,
   tileInteractionDataAttributes,
   tileLiftedDataAttributes,
@@ -48,6 +50,11 @@ function dragTargets(dragEnabled: boolean, floating: boolean): DragTargets {
   return { grid: dragEnabled && !floating, float: dragEnabled && floating };
 }
 
+// A tile without a header strip has no other handle, so it always drags from the whole tile.
+function resolveDragFrom(configured: DragFrom, hasHeader: boolean): DragFrom {
+  return configured === DragFrom.Header && hasHeader ? DragFrom.Header : DragFrom.Tile;
+}
+
 type PointerDownHandler = (event: ReactPointerEvent) => void;
 
 interface DragChrome {
@@ -82,17 +89,19 @@ interface TileDomAttrsInput {
   readonly floating: boolean;
   readonly lifted: boolean;
   readonly draggable: boolean;
+  readonly dragFrom: DragFrom;
   readonly pickingMode: TilePickingMode;
 }
 
 function tileDomAttrs(input: TileDomAttrsInput): Record<string, unknown> {
-  const { tile, active, valid, floating, lifted, draggable, pickingMode } = input;
+  const { tile, active, valid, floating, lifted, draggable, dragFrom, pickingMode } = input;
   return {
     ...tileInteractionDataAttributes(active, valid),
     ...tileStackDataAttributes(pickingMode),
     ...tileFloatDataAttributes(floating),
     ...tileLiftedDataAttributes(lifted),
     ...tileDataAttributes(tile),
+    ...tileDragFromDataAttributes(dragFrom),
     ...(draggable ? { [DataAttr.Draggable]: 'true' } : {}),
   };
 }
@@ -120,12 +129,13 @@ function TileComponent({ tile }: TileProps) {
   const baseStyle = tileStyle(tilePosition(tile, active, origin), tile.size, config.grid);
   const dragEnabled = enabled && picking.mode === TilePickingMode.Idle;
   const targets = dragTargets(dragEnabled, floating);
-  const gridDrag = useTilePointer({ tile: tile.id, enabled: targets.grid, dispatchAt });
-  const floatDrag = useFloatDrag({ tile: tile.id, board: config.activeBoardId, enabled: targets.float, origin: tile.float ?? { x: tile.col, y: tile.row } });
-  const chrome = dragChromeFor({ dragEnabled, floating, grid: gridDrag, float: floatDrag });
   const tileHeader = useContext(TileHeaderContext);
   const manifest = config.widgets.get(activeItem(tile).type);
   const hasHeader = tileHeaderPlacementFor(tileHeader !== null, manifest?.header) === TileHeaderPlacement.Strip;
+  const dragFrom = resolveDragFrom(config.dragFrom, hasHeader);
+  const gridDrag = useTilePointer({ tile: tile.id, enabled: targets.grid, dragFrom, dispatchAt });
+  const floatDrag = useFloatDrag({ tile: tile.id, board: config.activeBoardId, enabled: targets.float, dragFrom, origin: tile.float ?? { x: tile.col, y: tile.row } });
+  const chrome = dragChromeFor({ dragEnabled, floating, grid: gridDrag, float: floatDrag });
 
   return (
     <div
@@ -134,7 +144,7 @@ function TileComponent({ tile }: TileProps) {
       onPointerDown={chrome.onPointerDown}
       onContextMenu={chrome.onContextMenu}
       onClick={picking.onClick}
-      {...tileDomAttrs({ tile, active, valid, floating, lifted: chrome.lifted, draggable: enabled, pickingMode: picking.mode })}
+      {...tileDomAttrs({ tile, active, valid, floating, lifted: chrome.lifted, draggable: enabled, dragFrom, pickingMode: picking.mode })}
     >
       <WidgetContainer {...widgetContainerProps(tile, config)} />
       <TileOverlay tile={tile} hasHeader={hasHeader} />

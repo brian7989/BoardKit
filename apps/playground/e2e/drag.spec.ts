@@ -17,10 +17,13 @@ test('a mouse drag moves a tile to a new cell', async ({ page }) => {
   await expect(tile).toBeVisible();
   const rowBefore = await readRow(tile);
 
+  // Drags start from the header strip only, not the widget body.
+  const header = tile.locator('[data-bk-tile-header]');
+  const headerBox = await header.boundingBox();
   const box = await tile.boundingBox();
-  if (!box) throw new Error('tile has no layout box');
-  const cx = box.x + box.width / 2;
-  const cy = box.y + box.height / 2;
+  if (!box || !headerBox) throw new Error('tile has no layout box');
+  const cx = headerBox.x + headerBox.width / 2;
+  const cy = headerBox.y + headerBox.height / 2;
   await page.mouse.move(cx, cy);
   await page.mouse.down();
   await page.mouse.move(cx, cy + 10, { steps: 3 });

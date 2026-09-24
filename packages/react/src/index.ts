@@ -1,5 +1,5 @@
 // Provider: owns board state and provides it to everything below.
-export { BoardProvider, defineBoards, createInitialState, useBoards, useLocked, useGrid, useBoardList, useWidgetCatalog, ChangeReason } from './provider/index.js';
+export { BoardProvider, defineBoards, createInitialState, useBoards, useLocked, useGrid, useBoardList, useWidgetCatalog, ChangeReason, DragFrom } from './provider/index.js';
 export type {
   BoardsConfig,
   BoardsContextValue,

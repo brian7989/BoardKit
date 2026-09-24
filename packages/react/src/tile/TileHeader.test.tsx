@@ -239,10 +239,11 @@ describe('tileHeader', () => {
     );
 
     const siblingRenders = headerRenders[T2];
+    const header = within(tileElement(T1)).getByText(`header:${T1}`);
 
     // Small moves within T1's own cell, released outside the board to cancel: T2 is never
     // displaced, so its memoized Tile (and header) should see no re-render at all.
-    fireEvent.pointerDown(tileElement(T1), { clientX: 10, clientY: 10, button: 0 });
+    fireEvent.pointerDown(header, { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(window, { clientX: 30, clientY: 10 });
     fireEvent.pointerMove(window, { clientX: 50, clientY: 10 });
     fireEvent.pointerMove(window, { clientX: 60, clientY: 10 });

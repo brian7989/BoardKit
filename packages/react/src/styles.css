@@ -20,8 +20,17 @@
 }
 
 [data-bk-tile-id][data-bk-draggable='true'] {
-  cursor: grab;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* data-bk-drag-from picks which element is the actual handle: the whole tile, or (when the tile
+   drags by its header) the header strip only — the body keeps the default cursor either way. */
+[data-bk-tile-id][data-bk-draggable='true'][data-bk-drag-from='tile'] {
+  cursor: grab;
+}
+
+[data-bk-tile-id][data-bk-draggable='true'][data-bk-drag-from='header'] [data-bk-tile-header] {
+  cursor: grab;
 }
 
 /* A widget's own inputs stay selectable/editable; only the tile's chrome resists long-press. */
@@ -57,11 +66,22 @@
 [data-bk-tile-id][data-bk-floating='true'] {
   z-index: 12;
   will-change: transform;
-  cursor: grab;
   filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.24));
 }
 
-[data-bk-tile-id][data-bk-floating='true']:active {
+[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='tile'] {
+  cursor: grab;
+}
+
+[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='header'] [data-bk-tile-header] {
+  cursor: grab;
+}
+
+[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='tile']:active {
+  cursor: grabbing;
+}
+
+[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='header'] [data-bk-tile-header]:active {
   cursor: grabbing;
 }
 

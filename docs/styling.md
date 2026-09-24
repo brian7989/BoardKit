@@ -22,6 +22,7 @@ The gutter between tiles, default `0px`. Set it on any ancestor of `<Board>` —
 |---|---|---|
 | `data-bk-tile-id` | Every tile | Present on every tile's root element (its value is the tile's id). |
 | `data-bk-draggable` | Every tile | `"true"` once a tile is draggable — effectively always. |
+| `data-bk-drag-from` | Every tile | `"header"` or `"tile"` — which element is that tile's actual drag handle, per `dragFrom`. |
 | `data-bk-lifted` | A tile | `"true"` for the brief lift just before a drag becomes active. |
 | `data-bk-active` | A tile | `"true"` while a tile is actively being dragged or resized. |
 | `data-bk-valid` | A tile | `"true"`/`"false"` during an active drag: whether the current position is a legal drop. |

@@ -3,6 +3,7 @@ import type { BoardId, BoardsState, Engine, Op } from 'boardkit-core';
 import type { BoardsConfigContextValue } from './BoardsConfigContext.js';
 import type { Dispatch } from './useDispatch.js';
 import type { BoardProviderProps } from '../BoardProvider.js';
+import { DragFrom } from '../DragFrom.js';
 
 export interface UseBoardsConfigValueInput {
   readonly props: BoardProviderProps;
@@ -18,7 +19,7 @@ export interface UseBoardsConfigValueInput {
 }
 
 function toConfigValue(input: UseBoardsConfigValueInput): BoardsConfigContextValue {
-  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, props: { config, onWidgetError } } = input;
+  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, props: { config, onWidgetError, dragFrom } } = input;
   return {
     engine,
     grid,
@@ -27,6 +28,7 @@ function toConfigValue(input: UseBoardsConfigValueInput): BoardsConfigContextVal
     designCellSize: config.designCellSize,
     headerHeight: config.headerHeight,
     locked,
+    dragFrom: dragFrom ?? DragFrom.Header,
     activeBoardId,
     ...(onWidgetError ? { onWidgetError } : {}),
     dispatch,
@@ -38,9 +40,9 @@ function toConfigValue(input: UseBoardsConfigValueInput): BoardsConfigContextVal
 }
 
 export function useBoardsConfigValue(input: UseBoardsConfigValueInput): BoardsConfigContextValue {
-  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, props: { config, onWidgetError } } = input;
+  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, props: { config, onWidgetError, dragFrom } } = input;
   return useMemo<BoardsConfigContextValue>(
     () => toConfigValue(input),
-    [engine, grid, config, locked, activeBoardId, onWidgetError, dispatch, canApply, getState, subscribeState, reportWidth],
+    [engine, grid, config, locked, dragFrom, activeBoardId, onWidgetError, dispatch, canApply, getState, subscribeState, reportWidth],
   );
 }

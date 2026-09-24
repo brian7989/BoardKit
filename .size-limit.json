@@ -4,7 +4,7 @@
     "path": "packages/react/dist/index.js",
     "import": "{ BoardProvider, Board, defineBoards, defineWidget, useTile }",
     "ignore": ["react", "react-dom"],
-    "limit": "18 kB"
+    "limit": "18.1 kB"
   },
   {
     "name": "boardkit-core: createEngine",

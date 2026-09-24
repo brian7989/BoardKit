@@ -20,6 +20,7 @@ import { useBoardsConfigValue } from './internal/useBoardsConfigValue.js';
 import { useBoardsPersistence } from './persistence/useBoardsPersistence.js';
 import type { ChangeMeta } from './ChangeMeta.js';
 import type { BoardsConfig } from './config/BoardsConfig.js';
+import type { DragFrom } from './DragFrom.js';
 
 /** Props for `BoardProvider`: its config, controlled/uncontrolled state, and host callbacks. */
 export interface BoardProviderProps {
@@ -28,6 +29,8 @@ export interface BoardProviderProps {
   readonly tileOverlay?: TileOverlayComponent;
   /** The host's tile header, rendered as a strip above the body, or as an overlay over a `header: false` widget's full-size body. Omit for no header. */
   readonly tileHeader?: TileHeaderComponent;
+  /** Where a tile's drag gesture may start: `'header'` (default) restricts it to the header strip when the tile has one; `'tile'` allows anywhere on the tile. */
+  readonly dragFrom?: DragFrom;
   readonly value?: BoardsState;
   readonly defaultValue?: BoardsState;
   /** Persists uncontrolled state to `localStorage` under this key, loading it back on mount. */
