@@ -53,7 +53,8 @@ const boards = defineBoards({
     { widget: 'clock' },
     { widget: 'weather', size: '2x1', props: { city: 'Tokyo' } },
     { widget: 'clock', page: 1, at: [0, 0], name: 'Backup clock' },
-    { widget: 'weather', float: { x: 0.5, y: 0.5 } },
+    { widget: 'weather', float: { x: 1, y: 1 } },
+    { widget: 'countdown', float: { x: 0.5, y: 0.5, free: true } },
   ],
 });
 ```
@@ -63,8 +64,9 @@ const boards = defineBoards({
 - Give `page` to pin a tile onto a specific extra page instead (0-indexed after however many pages
   the default-placed entries used), optionally with `at` (`[col, row]` or `{ x, y }`) for an exact
   cell.
-- Give `float` (a fractional `{ x, y }`) to start the tile already floating above the grid instead
-  of on it.
+- Give `float` to start the tile already floating above the grid instead of on it: snapped into
+  the Overlay layer at an integer `{ x, y }` by default, or unsnapped and collision-free with
+  `free: true` and a fractional position. See [Floating tiles](layout-and-breakpoints.md#floating-tiles).
 - `size`, `props` and `name` default to the widget's first size, `defaultProps`, and `title`.
 
 `createInitialState(config)` builds the same `BoardsState` `initialLayout` produces, without a

@@ -28,7 +28,7 @@ build a second one just to call `apply` outside a component.
 
 Every change to a board is an op: `Move`, `Resize`, `Add`, `Remove`, `Stack`, `Unstack`,
 `SetActive`, `ReorderStack`, `RenameWidget`, `AddBoard`, `RemoveBoard`, `SetFloating`,
-`MoveFloating`. `engine.apply(state, op)` returns a typed `Result`:
+`MoveFloating`, `SetFloatFree`. `engine.apply(state, op)` returns a typed `Result`:
 
 ```ts
 const result = engine.apply(state, {

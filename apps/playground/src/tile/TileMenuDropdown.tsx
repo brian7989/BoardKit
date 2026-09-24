@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Menu } from '@mantine/core';
-import { IconLayersIntersect, IconMaximize, IconMinimize, IconPencil, IconTrash } from '@tabler/icons-react';
+import { IconArrowsMove, IconLayersIntersect, IconLayoutGrid, IconMaximize, IconMinimize, IconPencil, IconTrash } from '@tabler/icons-react';
 import { RenameModal } from './RenameModal';
 import { SizePicker } from './SizePicker';
 import { StackModal } from './StackModal';
@@ -22,6 +22,14 @@ export function TileMenuDropdown({ t, dialog, setDialog, opened, setOpened, isSt
           <Menu.Item leftSection={t.float.isFloating ? <IconMinimize size={14} /> : <IconMaximize size={14} />} onClick={() => t.float.toggle()}>
             {t.float.isFloating ? 'Unfloat' : 'Float'}
           </Menu.Item>
+          {t.float.isFloating ? (
+            <Menu.Item
+              leftSection={t.float.isFree ? <IconLayoutGrid size={14} /> : <IconArrowsMove size={14} />}
+              onClick={() => t.float.setFree(!t.float.isFree)}
+            >
+              {t.float.isFree ? 'Snap to grid' : 'Move freely'}
+            </Menu.Item>
+          ) : null}
           <Menu.Item leftSection={<IconPencil size={14} />} onClick={() => setDialog('rename')}>
             Rename…
           </Menu.Item>

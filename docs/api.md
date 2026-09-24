@@ -31,7 +31,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 
 | Export | What it is |
 |---|---|
-| `Board` | Renders the active board's grid, tiles, and widgets, with drag-and-drop for grid and floating tiles. |
+| `Board` | Renders the active board's grid, tiles, and widgets, with drag-and-drop for grid tiles and both floating layers (snapped Overlay, free). |
 | `BoardProps` (type) | `Board`'s props: `board`, and `emptyState` shown when it has no tiles. |
 | `useBoardTiles` | The active board's tiles, for a custom renderer in place of `<Board>`. |
 | `useStackPicking` | Board-level status of an in-progress "stack with…" pick. |
@@ -44,7 +44,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | `useTile` | Facade over one tile's `size`, `float`, `stack`, `name`, `interaction`, `remove`. |
 | `UseTileResult` (type) | `useTile`'s return shape. |
 | `useTileSize` / `UseTileSizeResult` / `TileSizeOption` | A tile's current size, its options, and `set`/`canSet`. |
-| `useTileFloat` / `UseTileFloatResult` | Whether a tile is floating, and `toggle`/`set`. |
+| `useTileFloat` / `UseTileFloatResult` | Whether a tile is floating (and snapped Overlay or Free), and `toggle`/`set`/`setFree`. |
 | `useTileStack` / `UseTileStackResult` / `TileStackItem` | A tile's stacked items, and select/unstack/reorder/rename/combine actions. |
 | `useTileName` / `UseTileNameResult` | A tile's current display name, and `set` to rename it. |
 | `useTileInteraction` / `UseTileInteractionResult` | A tile's live drag/valid/locked state. |
@@ -82,7 +82,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 |---|---|
 | `BoardsState` / `Tile` / `Size` / `Op` / `Rejection` / `Result` (types) | The core model and result types — see [Engine](engine.md). |
 | `BoardId` / `TileId` / `WidgetId` / `Cell` / `Px` (types) | Branded value types for ids and units. |
-| `OpType` | Every op's discriminant: `Move`, `Resize`, `Add`, `Remove`, `Stack`, `Unstack`, `SetActive`, `ReorderStack`, `RenameWidget`, `AddBoard`, `RemoveBoard`, `SetFloating`, `MoveFloating`. |
+| `OpType` | Every op's discriminant: `Move`, `Resize`, `Add`, `Remove`, `Stack`, `Unstack`, `SetActive`, `ReorderStack`, `RenameWidget`, `AddBoard`, `RemoveBoard`, `SetFloating`, `MoveFloating`, `SetFloatFree`. |
 | `RejectReason` | Why an op was rejected — out of bounds, no free space, size not allowed, stack incompatible, and so on. |
 | `boardId` / `tileId` / `widgetId` / `cell` / `px` | Branded-value constructors for the ids and units above. |
 

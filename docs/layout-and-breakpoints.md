@@ -63,6 +63,59 @@ Set it on any ancestor of `<Board>`, optionally varying it by breakpoint as abov
 
 See [Styling](styling.md) for the rest of the CSS surface.
 
+## Floating tiles
+
+A floating tile sits above the grid instead of in it, in one of two layers:
+
+- **Overlay** (the default) — snapped to an integer cell, and collision-checked against other
+  Overlay tiles only: they push each other out of the way like ordinary grid tiles, but they never
+  collide with the grid underneath. Good for a panel that should stay tidy and non-overlapping —
+  robot or job details over a live map, say.
+- **Free** (opt in with `free: true`) — an unsnapped, fractional position with no collision against
+  anything, on any layer. Good for something a person drags around freely, like a picture-in-
+  picture video.
+
+Non-floating tiles are unaffected either way — the grid's own solver never even looks at floaters.
+
+### Adding a floating tile
+
+`useWidgetCatalog().add` and `initialLayout` entries both take the same `float` shape:
+
+```ts
+// Snapped into the Overlay layer at (2, 1), pushing whatever Overlay tile is already there.
+catalog.add('robotDetail', { float: { x: 2, y: 1 } });
+
+// Free: unsnapped, fractional, never collides with anything.
+catalog.add('miniPlayer', { float: { x: 4.5, y: 0.5, free: true } });
+```
+
+A snapped `add` that can't fit at the requested cell (even after pushing) falls back to the first
+free Overlay spot, and only rejects (`NoFreeSpace`/`NoValidArrangement`) if the whole layer is full.
+A `free` add always succeeds, clamped onto the board.
+
+### Moving between layers
+
+`useTile(tile).float` gives a tile's own floating state and actions:
+
+```tsx
+const { float } = useTile(tile);
+
+float.isFloating; // true once it's floating, in either layer
+float.isFree; // true for Free, false for a snapped Overlay tile
+float.toggle(); // grid ↔ floating (enters/leaves the Overlay layer)
+float.setFree(true); // snapped → free, in place
+float.setFree(false); // free → snapped, rounding onto the Overlay layer's solver
+```
+
+Dragging works from anywhere `dragFrom` allows (the whole tile, or just its header strip): a Free
+tile follows the pointer continuously, while a snapped Overlay tile rounds to the nearest cell and
+resolves like a grid move — pushing other Overlay tiles, and snapping back if the drop is
+impossible.
+
+Resizing, reflow onto a different breakpoint, and reloading saved state all stay layer-aware: an
+Overlay tile that can no longer fit its layer shrinks to a smaller allowed size first, and only
+becomes Free (clamped onto the board) as a last resort — it's never dropped for being floating.
+
 ## Next
 
 - [Chrome](chrome.md) — page dots via `useBoardList`, an add-widget gallery.

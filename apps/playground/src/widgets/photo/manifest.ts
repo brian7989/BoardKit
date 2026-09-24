@@ -10,7 +10,7 @@ export interface PhotoProps extends Record<string, unknown> {
 export const photoWidget = defineWidget<PhotoProps>({
   type: 'photo',
   title: 'Photo',
-  sizes: ['1x1', '2x2'],
+  sizes: ['1x1', '2x2', '6x4'],
   defaultProps: { src: `https://picsum.photos/seed/${faker.string.alphanumeric(8)}/600/600`, caption: faker.location.city() + ', ' + faker.location.country() },
   header: false,
   component: Photo,
