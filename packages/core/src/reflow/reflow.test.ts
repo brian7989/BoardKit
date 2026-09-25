@@ -223,4 +223,27 @@ describe('reflow', () => {
     const ids = backToPhone.state.boards.flatMap((board) => board.tiles.map((tile) => tile.id));
     expect(ids).toEqual([tileId('t2')]);
   });
+
+  it('restores saved spots before placing a new tile, even one earlier in reading order', () => {
+    const desktop = stateOn(DESKTOP, [{ id: 'default', tiles: [rawTile({ id: 't1', col: 0, row: 0, type: 'small' })] }]);
+    const phone = engineFor(PHONE).reflow(engineFor(DESKTOP).reflow(engineFor(PHONE).reflow(desktop).state).state).state;
+
+    // On the phone, t1 moves away and t2 is added ahead of it in reading order, with no desktop spot yet.
+    const moved = engineFor(PHONE).apply(phone, { type: OpType.Move, board: boardId('default'), tile: tileId('t1'), to: { x: cell(1), y: cell(1) } });
+    if (!moved.ok) throw new Error('fixture move should succeed');
+    const added = engineFor(PHONE).apply(moved.value.state, {
+      type: OpType.Add,
+      board: boardId('default'),
+      tileId: tileId('t2'),
+      widget: { id: widgetId('t2-w'), type: 'small' },
+      size: { w: cell(1), h: cell(1) },
+      at: { x: cell(0), y: cell(0) },
+    });
+    if (!added.ok) throw new Error('fixture add should succeed');
+
+    const back = engineFor(DESKTOP).reflow(added.value.state);
+    const byId = new Map(positionsOf(back.state).map((tile) => [tile.id, tile]));
+    expect(byId.get(tileId('t1'))).toMatchObject({ col: 0, row: 0 });
+    expect(byId.get(tileId('t2'))).not.toMatchObject({ col: 0, row: 0 });
+  });
 });

@@ -32,22 +32,27 @@ function savedPositions(saved: readonly LayoutTile[] | undefined): Map<TileId, L
   return byTile;
 }
 
-interface PlaceOneInput {
-  readonly entry: ReflowEntry;
-  readonly at: LayoutTile | undefined;
+interface PlaceAllInput {
+  readonly entries: readonly ReflowEntry[];
+  readonly savedByTile: ReadonlyMap<TileId, LayoutTile>;
   readonly ctx: EngineContext;
   readonly pages: Page[];
   readonly changes: ReflowChange[];
 }
 
-function placeOne(input: PlaceOneInput): void {
-  const { entry, at, ctx, pages, changes } = input;
-  if (at) {
-    placeAtSavedSpot({ entry, at, ctx, pages, changes });
-    return;
+// Saved spots go down first: a tile with no saved spot searches for free space, and placed
+// earlier it could take a spot a restored tile is about to be put back into verbatim.
+function placeAll(input: PlaceAllInput): void {
+  const { entries, savedByTile, ctx, pages, changes } = input;
+  for (const entry of entries) {
+    const at = savedByTile.get(entry.tile.id);
+    if (at) placeAtSavedSpot({ entry, at, ctx, pages, changes });
   }
-  const place = isFloating(entry.tile) ? placeFloatingTile : placeGridTile;
-  place({ entry, ctx, pages, changes });
+  for (const entry of entries) {
+    if (savedByTile.has(entry.tile.id)) continue;
+    const place = isFloating(entry.tile) ? placeFloatingTile : placeGridTile;
+    place({ entry, ctx, pages, changes });
+  }
 }
 
 interface FinalizeInput {
@@ -81,9 +86,7 @@ export function reflow(state: BoardsState, ctx: EngineContext): ReflowResult {
   const savedByTile = savedPositions(saved);
   const changes: ReflowChange[] = [];
 
-  for (const entry of flattenReadingOrder(state.boards)) {
-    placeOne({ entry, at: savedByTile.get(entry.tile.id), ctx, pages, changes });
-  }
+  placeAll({ entries: flattenReadingOrder(state.boards), savedByTile, ctx, pages, changes });
 
   return finalize({ state, fromKey, toKey, pages, ctx, changes });
 }
