@@ -1,5 +1,11 @@
 # boardkit-core
 
+## 0.1.2
+
+### Patch Changes
+
+- 223f3c3: - **Fix: crash when switching breakpoints after adding a tile**: a tile added on one breakpoint could take the saved spot of a tile being restored on another, and the board threw on the overlap. Saved positions are now restored first, and new tiles fill the space that is left.
+
 ## 0.1.1
 
 ### Patch Changes
