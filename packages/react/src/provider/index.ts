@@ -1,5 +1,8 @@
 export { defineBoards } from './config/defineBoards.js';
 export { createInitialState } from './config/createInitialState.js';
+export type { CreateInitialStateOptions } from './config/createInitialState.js';
+export { loadBoards } from './persistence/loadBoards.js';
+export { useResetBoards } from './hooks/useResetBoards.js';
 export type { BoardsConfig } from './config/BoardsConfig.js';
 export type { ResolvedBreakpoint } from './config/ResolvedBreakpoint.js';
 export type { GridBreakpoint } from './config/GridBreakpoint.js';

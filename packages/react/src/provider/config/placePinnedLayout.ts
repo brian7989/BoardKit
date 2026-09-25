@@ -1,7 +1,8 @@
 import { boardId, OpType, type BoardId, type BoardsState } from 'boardkit-core';
 import type { InitialLayoutTile } from './InitialLayoutTile.js';
+import type { ResolvedEntry } from './resolveEntries.js';
 import type { InitialPlacementCtx } from './InitialPlacementCtx.js';
-import { resolveInitialTile, type ResolvedInitialTile } from './resolveInitialTile.js';
+import type { ResolvedInitialTile } from './resolveInitialTile.js';
 import { addResolvedTile } from './addResolvedTile.js';
 import { toPoint } from './toPoint.js';
 
@@ -53,17 +54,17 @@ function placeGridEntry(input: PlacementAttempt): AddAttempt | null {
 interface PlaceEntryInput {
   readonly ctx: InitialPlacementCtx;
   readonly progress: PinnedProgress;
-  readonly entry: InitialLayoutTile;
+  readonly item: ResolvedEntry;
   readonly baseIndex: number;
 }
 
 function placeEntry(input: PlaceEntryInput): PinnedProgress {
-  const { ctx, entry, baseIndex } = input;
+  const { ctx, baseIndex } = input;
+  const { entry, resolved } = input.item;
   const page = entry.page ?? 0;
   const opened = ensurePage({ ctx, progress: input.progress, page, baseIndex });
   const board = opened.boards.get(page);
-  const resolved = board ? resolveInitialTile(ctx, entry) : null;
-  if (!board || !resolved) return opened;
+  if (!board) return opened;
   const attemptInput: PlacementAttempt = { ctx, state: opened.state, board, entry, resolved };
   const attempt = resolved.float ? placeFloatingEntry(attemptInput) : placeGridEntry(attemptInput);
   if (!attempt || !attempt.ok) return opened;
@@ -72,7 +73,7 @@ function placeEntry(input: PlaceEntryInput): PinnedProgress {
 
 export interface PlacePinnedInput {
   readonly ctx: InitialPlacementCtx;
-  readonly entries: readonly InitialLayoutTile[];
+  readonly entries: readonly ResolvedEntry[];
   readonly state: BoardsState;
   readonly baseIndex: number;
 }
@@ -81,6 +82,6 @@ export interface PlacePinnedInput {
 export function placePinnedLayout(input: PlacePinnedInput): BoardsState {
   const { ctx, entries, state, baseIndex } = input;
   let progress: PinnedProgress = { state, boards: new Map() };
-  for (const entry of entries) progress = placeEntry({ ctx, progress, entry, baseIndex });
+  for (const item of entries) progress = placeEntry({ ctx, progress, item, baseIndex });
   return progress.state;
 }

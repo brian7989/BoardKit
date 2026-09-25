@@ -37,7 +37,7 @@ function App() {
 ```
 
 `onChange`'s second argument is `ChangeMeta`: `{ reason: 'op', op, changes }` for a dispatched
-action, or `{ reason: 'reflow', changes }` for an automatic breakpoint reflow (see
+action, `{ reason: 'reset' }` after `useResetBoards`, or `{ reason: 'reflow', changes }` for an automatic breakpoint reflow (see
 [Layout & breakpoints](layout-and-breakpoints.md)) — useful for deciding what's worth persisting
 or announcing.
 
@@ -59,8 +59,11 @@ const boards = defineBoards({
 });
 ```
 
-- Omit `at`/`page` for first-fit placement — BoardKit packs tiles in reading order and spills
-  overflow onto new pages automatically.
+- Give `at` (`[col, row]` or `{ x, y }`) to place a tile at an exact cell on the first page. Entries
+  with `at` are placed first; if an authored cell clashes with an earlier one, that entry falls back
+  to first-fit instead of pushing the earlier one aside.
+- Omit `at`/`page` for first-fit placement — BoardKit packs tiles in reading order around the
+  pinned ones and spills overflow onto new pages automatically.
 - Give `page` to pin a tile onto a specific extra page instead (0-indexed after however many pages
   the default-placed entries used), optionally with `at` (`[col, row]` or `{ x, y }`) for an exact
   cell.
@@ -70,18 +73,65 @@ const boards = defineBoards({
 - `size`, `props` and `name` default to the widget's first size, `defaultProps`, and `title`.
 
 `createInitialState(config)` builds the same `BoardsState` `initialLayout` produces, without a
-provider — useful for a controlled board's initial `useState`, or a test fixture:
+provider — useful for a controlled board's initial `useState`, or a test fixture. Pass
+`{ width }` to start on that width's breakpoint instead of the widest:
 
 ```ts
 import { createInitialState } from 'boardkit-react';
 
 const initial = createInitialState(boards);
+const tablet = createInitialState(boards, { width: 700 });
 ```
+
+### A layout per breakpoint
+
+A breakpoint can carry its own `initialLayout`, authored for its own grid, instead of getting the
+widest one reflowed onto it:
+
+```ts
+const boards = defineBoards({
+  grid: [
+    { minWidth: 1000, cols: 12, rows: 6 },
+    {
+      minWidth: 600, cols: 8, rows: 10,
+      initialLayout: [
+        { widget: 'liveView', size: '8x4', at: [0, 0] },
+        { widget: 'jobs', size: '8x3', at: [0, 4] },
+        { widget: 'robots', size: '4x3', at: [0, 7] },
+        { widget: 'inspector', size: '4x3', at: [4, 7] },
+      ],
+    },
+    { minWidth: 0, cols: 4, rows: 8 },
+  ],
+  widgets: [liveView, jobs, robots, inspector],
+  initialLayout: [/* the 12×6 desktop layout */],
+});
+```
+
+- The widest breakpoint uses its own `initialLayout` if it has one, else the top-level one.
+- A breakpoint with an authored layout shows exactly that layout the first time it's reached. One
+  without reflows from whichever breakpoint it switched from, as before.
+- Every breakpoint shares the same widget instances: the same widget type listed in two layouts is
+  one widget (matched by type, in order), with one set of props. A widget only one layout lists is
+  still on every breakpoint, first-fit where it isn't authored.
+- After that, each breakpoint remembers its own edits — see
+  [Layout & breakpoints](layout-and-breakpoints.md#every-breakpoint-remembers-its-own-layout).
+
+### Resetting
+
+`useResetBoards()` returns a function that puts the board back to its authored layouts on every
+breakpoint. It commits through `onChange` with `{ reason: 'reset' }`, so a controlled host's state
+and a `storageKey` save both follow.
 
 ## `storageKey` and repair
 
-With `storageKey`, an uncontrolled board saves its state to `localStorage` (debounced, flushed on
-`pagehide`) and loads it back on mount. Loading never trusts what's there blindly: BoardKit parses
+With `storageKey`, a board saves its state to `localStorage` (debounced, flushed on `pagehide`). An
+uncontrolled board also loads it back on mount; a controlled one starts from `loadBoards`:
+
+```ts
+const [state, setState] = useState(() => loadBoards(boards, 'my-board'));
+```
+ Loading never trusts what's there blindly: BoardKit parses
 it and **repairs** anything that no longer validates — an out-of-bounds tile is relocated onto
 free space instead of failing outright, and a tile referencing a widget type that's no longer
 registered is dropped, with a dev-only console warning either way. A completely unparsable value

@@ -16,6 +16,7 @@ export const OpType = {
   SetFloating: 'set-floating',
   MoveFloating: 'move-floating',
   SetFloatFree: 'set-float-free',
+  SetWidgetProps: 'set-widget-props',
 } as const;
 
 export type OpType = ValueOf<typeof OpType>;

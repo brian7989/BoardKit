@@ -16,6 +16,7 @@ export const ChangeKind = {
   Unfloated: 'unfloated',
   Freed: 'freed',
   Snapped: 'snapped',
+  PropsChanged: 'props-changed',
 } as const;
 
 export type ChangeKind = ValueOf<typeof ChangeKind>;

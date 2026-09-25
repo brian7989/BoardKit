@@ -19,3 +19,4 @@ export type { RemoveBoardOp } from './handlers/removeBoard.js';
 export type { SetFloatingOp } from './handlers/setFloating.js';
 export type { MoveFloatingOp } from './handlers/moveFloating.js';
 export type { SetFloatFreeOp } from './handlers/setFloatFree.js';
+export type { SetWidgetPropsOp } from './handlers/setWidgetProps.js';

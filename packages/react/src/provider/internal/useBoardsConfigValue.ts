@@ -16,10 +16,11 @@ export interface UseBoardsConfigValueInput {
   readonly getState: () => BoardsState;
   readonly subscribeState: (listener: () => void) => () => void;
   readonly reportWidth: (width: number) => void;
+  readonly reset: () => void;
 }
 
 function toConfigValue(input: UseBoardsConfigValueInput): BoardsConfigContextValue {
-  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, props: { config, onWidgetError, dragFrom } } = input;
+  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, reset, props: { config, onWidgetError, dragFrom } } = input;
   return {
     engine,
     grid,
@@ -31,18 +32,14 @@ function toConfigValue(input: UseBoardsConfigValueInput): BoardsConfigContextVal
     dragFrom: dragFrom ?? DragFrom.Header,
     activeBoardId,
     ...(onWidgetError ? { onWidgetError } : {}),
-    dispatch,
-    canApply,
-    getState,
-    subscribeState,
-    reportWidth,
+    dispatch, canApply, getState, subscribeState, reportWidth, reset,
   };
 }
 
 export function useBoardsConfigValue(input: UseBoardsConfigValueInput): BoardsConfigContextValue {
-  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, props: { config, onWidgetError, dragFrom } } = input;
+  const { engine, grid, activeBoardId, locked, dispatch, canApply, getState, subscribeState, reportWidth, reset, props: { config, onWidgetError, dragFrom } } = input;
   return useMemo<BoardsConfigContextValue>(
     () => toConfigValue(input),
-    [engine, grid, config, locked, dragFrom, activeBoardId, onWidgetError, dispatch, canApply, getState, subscribeState, reportWidth],
+    [engine, grid, config, locked, dragFrom, activeBoardId, onWidgetError, dispatch, canApply, getState, subscribeState, reportWidth, reset],
   );
 }

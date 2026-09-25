@@ -10,6 +10,7 @@ import { useControllableLocked } from './internal/useControllableLocked.js';
 import { useBoardsStateStore } from './internal/useBoardsStateStore.js';
 import { useActiveBreakpoint } from './internal/useActiveBreakpoint.js';
 import { useDispatch } from './internal/useDispatch.js';
+import { useReset } from './internal/useReset.js';
 import { useEngineGuard } from './internal/useEngineGuard.js';
 import { toActiveBoardInput } from './internal/toActiveBoardInput.js';
 import { toLockedInput } from './internal/toLockedInput.js';
@@ -33,7 +34,7 @@ export interface BoardProviderProps {
   readonly dragFrom?: DragFrom;
   readonly value?: BoardsState;
   readonly defaultValue?: BoardsState;
-  /** Persists uncontrolled state to `localStorage` under this key, loading it back on mount. */
+  /** Saves the board to `localStorage` under this key on every change. Uncontrolled boards also load it back on mount; controlled ones load it with `loadBoards`. */
   readonly storageKey?: string;
   readonly onChange?: (next: BoardsState, meta: ChangeMeta) => void;
   readonly activeBoard?: BoardId;
@@ -66,9 +67,10 @@ export function BoardProvider(props: BoardProviderProps) {
 
   const dispatch = useDispatch({ engine, getState, commit, ...(props.onReject ? { onReject: props.onReject } : {}) });
   const canApply = useCallback((op: Op) => engine.apply(getState(), op).ok, [engine, getState]);
+  const reset = useReset({ config: props.config, engine, commit });
   useBoardsPersistence(toPersistenceInput(props, props.config.engine, state));
   const contextValue = useBoardsContextValue({ props, state, engine, grid, activeBoardId, setActiveBoard, locked, dispatch, canApply });
-  const configInput = { props, engine, grid, activeBoardId, locked, dispatch, canApply, getState: stateStore.getState, subscribeState: stateStore.subscribe, reportWidth };
+  const configInput = { props, engine, grid, activeBoardId, locked, dispatch, canApply, getState: stateStore.getState, subscribeState: stateStore.subscribe, reportWidth, reset };
   const configValue = useBoardsConfigValue(configInput);
 
   return (

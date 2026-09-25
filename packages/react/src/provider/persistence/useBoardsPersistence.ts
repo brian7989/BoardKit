@@ -7,7 +7,6 @@ export interface UseBoardsPersistenceInput {
   readonly storageKey?: string;
   readonly engine: Engine;
   readonly state: BoardsState;
-  readonly enabled: boolean;
 }
 
 function save(storageKey: string, engine: Engine, state: BoardsState): void {
@@ -20,9 +19,9 @@ function save(storageKey: string, engine: Engine, state: BoardsState): void {
 
 /** Debounced `localStorage` save on every commit, flushed immediately on `pagehide`. SSR-safe. */
 export function useBoardsPersistence(input: UseBoardsPersistenceInput): void {
-  const { storageKey, engine, state, enabled } = input;
+  const { storageKey, engine, state } = input;
   useEffect(() => {
-    if (!enabled || !storageKey || typeof window === 'undefined') return undefined;
+    if (!storageKey || typeof window === 'undefined') return undefined;
     const flush = () => save(storageKey, engine, state);
     const timer = setTimeout(flush, SAVE_DEBOUNCE_MS);
     window.addEventListener('pagehide', flush);
@@ -30,5 +29,5 @@ export function useBoardsPersistence(input: UseBoardsPersistenceInput): void {
       clearTimeout(timer);
       window.removeEventListener('pagehide', flush);
     };
-  }, [enabled, storageKey, engine, state]);
+  }, [storageKey, engine, state]);
 }

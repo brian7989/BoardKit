@@ -30,7 +30,7 @@ function toSpecs(grid: SingleGrid | readonly GridBreakpoint[]): readonly GridBre
 function toBreakpoint(spec: GridBreakpoint, input: ResolveBreakpointsInput): ResolvedBreakpoint {
   const grid = { cols: spec.cols, rows: spec.rows, cellAspect: spec.cellAspect ?? DEFAULT_CELL_ASPECT };
   const engine = createEngine({ grid, catalog: catalogOf(input.widgets), ...(input.solver ? { solver: input.solver } : {}) });
-  return { minWidth: spec.minWidth, grid, engine };
+  return { minWidth: spec.minWidth, grid, engine, ...(spec.initialLayout ? { initialLayout: spec.initialLayout } : {}) };
 }
 
 // One engine per breakpoint, all sharing the same widget catalog; widest first.

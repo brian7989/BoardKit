@@ -13,6 +13,23 @@ function stateFor(initialLayout: readonly InitialLayoutTile[]) {
 }
 
 describe('createInitialState', () => {
+  it('honours `at` on the default page, first-fitting everything else around it', () => {
+    const state = stateFor([{ widget: 'small' }, { widget: 'small', at: [0, 0], name: 'Pinned' }]);
+    const [first, second] = state.boards[0]?.tiles ?? [];
+    const pinned = [first, second].find((tile) => tile?.items[0]?.displayName === 'Pinned');
+    const other = [first, second].find((tile) => tile !== pinned);
+    expect(pinned).toMatchObject({ col: 0, row: 0 });
+    expect(other).not.toMatchObject({ col: 0, row: 0 });
+  });
+
+  it('falls back to first-fit when an authored spot clashes with an earlier one', () => {
+    const state = stateFor([{ widget: 'small', at: [0, 0] }, { widget: 'small', at: [0, 0], name: 'Clash' }]);
+    const clash = state.boards[0]?.tiles.find((tile) => tile.items[0]?.displayName === 'Clash');
+    expect(state.boards[0]?.tiles.find((tile) => tile.id === 't-small')).toMatchObject({ col: 0, row: 0 });
+    expect(clash).toBeDefined();
+    expect(clash).not.toMatchObject({ col: 0, row: 0 });
+  });
+
   it('first-fits at the largest fitting size and spills onto new pages', () => {
     const state = stateFor([{ widget: 'big' }, { widget: 'small' }]);
     expect(state.boards).toHaveLength(2);

@@ -28,6 +28,7 @@ export type {
   SetFloatingOp,
   MoveFloatingOp,
   SetFloatFreeOp,
+  SetWidgetPropsOp,
   Change,
   Rejection,
   Applied,
@@ -35,7 +36,7 @@ export type {
 export { OpType, ChangeKind, RejectReason } from './ops/index.js';
 export type { Repaired } from './repair/index.js';
 export type { ReflowResult, ReflowChange } from './reflow/index.js';
-export { ReflowChangeKind } from './reflow/index.js';
+export { ReflowChangeKind, withSavedLayout } from './reflow/index.js';
 export type { Engine, EngineConfig } from './engine/index.js';
 export { createEngine } from './engine/index.js';
 export { Direction } from './solver/index.js';

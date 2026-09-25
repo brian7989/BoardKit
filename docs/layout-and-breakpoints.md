@@ -27,7 +27,9 @@ breakpoint keeps its **own** remembered tile positions. Go from the 6×4 desktop
 2×4 phone grid and back up, and the 6×4 arrangement you left is exactly what comes back, not a
 repacked approximation.
 
-The first time a breakpoint is seen, or when tiles no longer fit it (a widget's size isn't valid
+A breakpoint with its own authored `initialLayout` starts from exactly that layout — see
+[A layout per breakpoint](boards-and-state.md#a-layout-per-breakpoint). Otherwise, the first time a
+breakpoint is seen, or when tiles no longer fit it (a widget's size isn't valid
 at the new grid, or there's no room), BoardKit **reflows**: it repacks tiles in reading order and
 spills overflow onto new pages. Either way, the result commits through the normal
 `value`/`onChange` path like any other change, with `meta.reason` set to `'reflow'` — see

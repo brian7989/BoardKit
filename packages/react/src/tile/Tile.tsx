@@ -1,5 +1,5 @@
 import { memo, useContext, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
-import { activeItem, isFloating, layerOf, TileLayer, type FractionalCell, type Tile as TileModel } from 'boardkit-core';
+import { activeItem, isFloating, layerOf, OpType, TileLayer, type FractionalCell, type Tile as TileModel } from 'boardkit-core';
 import { useBoardsConfig } from '../provider/internal/useBoardsConfig.js';
 import type { BoardsConfigContextValue } from '../provider/internal/BoardsConfigContext.js';
 import { DragFrom } from '../provider/DragFrom.js';
@@ -109,7 +109,7 @@ function tileDomAttrs(input: TileDomAttrsInput): Record<string, unknown> {
 }
 
 function widgetContainerProps(tile: TileModel, config: BoardsConfigContextValue): WidgetContainerProps {
-  const { widgets, locked, designCellSize, headerHeight, onWidgetError } = config;
+  const { widgets, locked, designCellSize, headerHeight, onWidgetError, dispatch, activeBoardId } = config;
   return {
     tile,
     widgets,
@@ -118,6 +118,7 @@ function widgetContainerProps(tile: TileModel, config: BoardsConfigContextValue)
     designCellSizePx: designCellSize,
     headerHeightPx: headerHeight,
     ...(onWidgetError ? { onWidgetError } : {}),
+    setProps: (widget, props) => void dispatch({ type: OpType.SetWidgetProps, board: activeBoardId, tile: tile.id, widget, props }),
   };
 }
 

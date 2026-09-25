@@ -66,6 +66,18 @@ function Readout() {
 }
 ```
 
+## Saving view state: `setProps`
+
+`WidgetProps.setProps(patch)` (also on `useWidget()`) shallow-merges `patch` into this widget's
+props and saves it with the board, so per-widget view state, such as a table/cards toggle,
+survives a reload and is the same on every breakpoint:
+
+```tsx
+function Robots({ props, setProps }: WidgetProps<{ view: 'table' | 'cards' }>) {
+  return <button onClick={() => setProps({ view: props.view === 'table' ? 'cards' : 'table' })}>{props.view}</button>;
+}
+```
+
 ## `name` and renaming
 
 Every widget instance has a display name — the manifest's `title` unless a host renamed it via

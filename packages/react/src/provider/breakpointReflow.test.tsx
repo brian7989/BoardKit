@@ -152,4 +152,26 @@ describe('breakpoint reflow', () => {
     const board = container.querySelector('[role="group"]');
     expect(board?.getAttribute('style')).toContain('aspect-ratio: 0.5');
   });
+
+  it('shows a narrower breakpoint its own authored layout when an uncontrolled board first reaches it', () => {
+    const authored = defineBoards({
+      grid: [
+        { minWidth: 600, cols: 6, rows: 4 },
+        { minWidth: 0, cols: 2, rows: 4, initialLayout: [{ widget: 'small', at: [1, 3] }] },
+      ],
+      widgets: [widget],
+      initialLayout: [{ widget: 'small', at: [5, 0] }],
+    });
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    render(
+      <BoardProvider config={authored} onChange={onChange}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    resizeTo(NARROW_WIDTH);
+
+    const tile = onChange.mock.calls.at(-1)?.[0].boards[0]?.tiles[0];
+    expect(tile).toMatchObject({ col: 1, row: 3 });
+  });
 });

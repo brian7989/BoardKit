@@ -22,6 +22,7 @@ export interface BoardsConfigContextValue {
   readonly subscribeState: (listener: () => void) => () => void;
   // <Board> reports its measured container width here; a breakpoint change reflows and commits.
   readonly reportWidth: (width: number) => void;
+  readonly reset: () => void;
 }
 
 export const BoardsConfigContext = createContext<BoardsConfigContextValue | null>(null);

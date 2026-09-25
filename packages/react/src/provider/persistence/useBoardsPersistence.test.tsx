@@ -23,29 +23,22 @@ afterEach(() => {
 describe('useBoardsPersistence', () => {
   it('saves the state to localStorage after the debounce window', () => {
     const state = config.engine.empty();
-    renderHook(() => useBoardsPersistence({ storageKey: KEY, engine: config.engine, state, enabled: true }));
+    renderHook(() => useBoardsPersistence({ storageKey: KEY, engine: config.engine, state }));
     expect(window.localStorage.getItem(KEY)).toBeNull();
     vi.advanceTimersByTime(250);
     expect(window.localStorage.getItem(KEY)).toBe(JSON.stringify(config.engine.serialize(state)));
   });
 
-  it('does not save when disabled (controlled mode)', () => {
-    const state = config.engine.empty();
-    renderHook(() => useBoardsPersistence({ storageKey: KEY, engine: config.engine, state, enabled: false }));
-    vi.advanceTimersByTime(250);
-    expect(window.localStorage.getItem(KEY)).toBeNull();
-  });
-
   it('does not save without a storageKey', () => {
     const state = config.engine.empty();
-    renderHook(() => useBoardsPersistence({ engine: config.engine, state, enabled: true }));
+    renderHook(() => useBoardsPersistence({ engine: config.engine, state }));
     vi.advanceTimersByTime(250);
     expect(window.localStorage.getItem(KEY)).toBeNull();
   });
 
   it('flushes immediately on pagehide', () => {
     const state = config.engine.empty();
-    renderHook(() => useBoardsPersistence({ storageKey: KEY, engine: config.engine, state, enabled: true }));
+    renderHook(() => useBoardsPersistence({ storageKey: KEY, engine: config.engine, state }));
     window.dispatchEvent(new Event('pagehide'));
     expect(window.localStorage.getItem(KEY)).toBe(JSON.stringify(config.engine.serialize(state)));
   });

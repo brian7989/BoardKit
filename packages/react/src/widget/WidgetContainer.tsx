@@ -1,5 +1,5 @@
 import { Suspense, useContext, type CSSProperties } from 'react';
-import { activeItem, type Tile } from 'boardkit-core';
+import { activeItem, type Tile, type WidgetId } from 'boardkit-core';
 import { DataAttr } from '../shared/index.js';
 import { TileHeader, TileHeaderContext } from '../tile/TileHeader.js';
 import { TileHeaderPlacement } from '../tile/TileHeaderPlacement.js';
@@ -22,7 +22,11 @@ export interface WidgetContainerProps {
   /** The tileHeader strip's fixed height, in design px (see `defineBoards`'s `headerHeight`). */
   readonly headerHeightPx: number;
   readonly onWidgetError?: (error: Error, widgetType: string) => void;
+  readonly setProps?: SetWidgetProps;
 }
+
+/** Saves a props patch for one of this tile's widgets. */
+export type SetWidgetProps = (widget: WidgetId, patch: Readonly<Record<string, unknown>>) => void;
 
 interface WidgetBodyProps {
   readonly tile: Tile;
@@ -30,10 +34,11 @@ interface WidgetBodyProps {
   readonly cells: { readonly w: number; readonly h: number };
   readonly locked: boolean;
   readonly designSize: { readonly width: number; readonly height: number };
+  readonly setProps?: SetWidgetProps;
 }
 
 // Throws inside WidgetContainer's error boundary, so a missing manifest shows the fallback.
-function WidgetBody({ tile, widgets, cells, locked, designSize }: WidgetBodyProps) {
+function WidgetBody({ tile, widgets, cells, locked, designSize, setProps }: WidgetBodyProps) {
   const item = activeItem(tile);
   const manifest = widgets.get(item.type);
   if (!manifest) throw new Error(`Widget type "${item.type}" is not registered.`);
@@ -45,6 +50,7 @@ function WidgetBody({ tile, widgets, cells, locked, designSize }: WidgetBodyProp
     locked,
     isActive: true,
     name: displayNameOf(item, manifest),
+    setProps: (patch) => setProps?.(item.id, patch),
   };
 
   return (
@@ -116,7 +122,7 @@ interface TileFrameInput {
 // Header and body share one frame so a host's CSS reads them as a single card; the header still
 // sits outside the body's error boundary, so a crashed widget still shows its header and menu.
 function TileFrame(input: TileFrameInput & WidgetBodyProps) {
-  const { tile, widgets, cells, locked, designSize, itemType, manifest, name, headerPlacement, headerHeightPx, onWidgetError } = input;
+  const { tile, widgets, cells, locked, designSize, itemType, manifest, name, headerPlacement, headerHeightPx, onWidgetError, setProps } = input;
   return (
     <div style={frameStyle(manifest?.surface)} data-bk-tile-frame="true">
       {headerPlacement ? (
@@ -127,7 +133,7 @@ function TileFrame(input: TileFrameInput & WidgetBodyProps) {
       <div style={BODY_STYLE} data-bk-tile-body="true">
         <WidgetErrorBoundary title={manifest?.title ?? itemType} onError={(error) => onWidgetError?.(error, itemType)}>
           <Suspense fallback={null}>
-            <WidgetBody tile={tile} widgets={widgets} cells={cells} locked={locked} designSize={designSize} />
+            <WidgetBody tile={tile} widgets={widgets} cells={cells} locked={locked} designSize={designSize} {...(setProps ? { setProps } : {})} />
           </Suspense>
         </WidgetErrorBoundary>
       </div>
@@ -141,7 +147,7 @@ interface ScaledSize {
 }
 
 function tileFrameProps(props: WidgetContainerProps, headerPlacement: TileHeaderPlacement | null, scaled: ScaledSize): TileFrameInput & WidgetBodyProps {
-  const { tile, widgets, cells, locked, headerHeightPx, onWidgetError } = props;
+  const { tile, widgets, cells, locked, headerHeightPx, onWidgetError, setProps } = props;
   const item = activeItem(tile);
   const manifest = widgets.get(item.type);
   return {
@@ -156,6 +162,7 @@ function tileFrameProps(props: WidgetContainerProps, headerPlacement: TileHeader
     headerHeightPx,
     designSize: bodyDesignSize({ headerPlacement, ...scaled, headerHeightPx }),
     ...(onWidgetError ? { onWidgetError } : {}),
+    ...(setProps ? { setProps } : {}),
   };
 }
 

@@ -7,4 +7,6 @@ export interface WidgetProps<P extends object = Record<string, unknown>> {
   readonly locked: boolean;
   readonly isActive: boolean;
   readonly name: string;
+  /** Shallow-merges `patch` into this widget's saved props, so per-widget view state persists with the board. */
+  readonly setProps: (patch: Partial<P>) => void;
 }
