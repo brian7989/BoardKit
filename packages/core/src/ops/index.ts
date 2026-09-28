@@ -10,6 +10,7 @@ export type { ResizeOp } from './handlers/resize.js';
 export type { AddOp } from './handlers/add.js';
 export type { RemoveOp } from './handlers/remove.js';
 export type { StackOp } from './handlers/stack.js';
+export type { StackNewOp } from './handlers/stackNew.js';
 export type { UnstackOp } from './handlers/unstack.js';
 export type { SetActiveOp } from './handlers/setActive.js';
 export type { ReorderStackOp } from './handlers/reorderStack.js';

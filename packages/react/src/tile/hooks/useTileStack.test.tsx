@@ -84,6 +84,8 @@ function TestChrome({ tile }: TileOverlayProps) {
       <button onClick={() => stack.unstack(W2)}>unstack-w2</button>
       <button onClick={() => stack.reorder(W2, 0)}>reorder-w2-first</button>
       <button onClick={() => stack.renameItem(W1, 'Renamed')}>rename-w1</button>
+      <button onClick={() => stack.addWidget('beta', { label: 'new beta' })}>add-beta</button>
+      <span data-testid="can-add">{`beta:${stack.canAddWidget('beta')} gamma:${stack.canAddWidget('gamma')} nope:${stack.canAddWidget('nope')}`}</span>
     </div>
   );
 }
@@ -192,5 +194,33 @@ describe('useTileStack', () => {
     const merged = tiles.find((tile) => tile.id === 't2');
     expect(merged?.items.map((item) => item.id)).toEqual(['w2', 'w1']);
     expect(merged).toMatchObject({ active: 1 });
+  });
+
+  it('addWidget(type, props) stacks a brand-new widget onto a lone tile, showing it, with no grid space needed', () => {
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    render(
+      <BoardProvider config={config} defaultValue={seedSeparateState()} onChange={onChange} tileOverlay={TestChrome}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    fireEvent.click(within(chromeFor(T1)).getByRole('button', { name: 'add-beta' }));
+
+    const state = onChange.mock.calls.at(-1)?.[0];
+    const tile = state?.boards[0]?.tiles.find((candidate) => candidate.id === T1);
+    expect(state?.boards[0]?.tiles).toHaveLength(3);
+    expect(tile?.items.map((item) => item.type)).toEqual(['alpha', 'beta']);
+    expect(tile?.items[1]?.props).toEqual({ label: 'new beta' });
+    expect(tile?.active).toBe(1);
+  });
+
+  it('canAddWidget reports which registered types allow the tile size', () => {
+    render(
+      <BoardProvider config={config} defaultValue={seedSeparateState()} tileOverlay={TestChrome}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    expect(within(chromeFor(T1)).getByTestId('can-add')).toHaveTextContent('beta:true gamma:false nope:false');
   });
 });

@@ -19,6 +19,7 @@ export type {
   AddOp,
   RemoveOp,
   StackOp,
+  StackNewOp,
   UnstackOp,
   SetActiveOp,
   ReorderStackOp,

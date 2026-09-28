@@ -7,6 +7,7 @@ export const OpType = {
   Add: 'add',
   Remove: 'remove',
   Stack: 'stack',
+  StackNew: 'stack-new',
   Unstack: 'unstack',
   SetActive: 'set-active',
   ReorderStack: 'reorder-stack',

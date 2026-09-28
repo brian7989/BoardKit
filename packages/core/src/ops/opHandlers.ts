@@ -7,6 +7,7 @@ import { resize } from './handlers/resize.js';
 import { add } from './handlers/add.js';
 import { remove } from './handlers/remove.js';
 import { stack } from './handlers/stack.js';
+import { stackNew } from './handlers/stackNew.js';
 import { unstack } from './handlers/unstack.js';
 import { setActive } from './handlers/setActive.js';
 import { reorderStack } from './handlers/reorderStack.js';
@@ -24,6 +25,7 @@ export const opHandlers = {
   [OpType.Add]: add,
   [OpType.Remove]: remove,
   [OpType.Stack]: stack,
+  [OpType.StackNew]: stackNew,
   [OpType.Unstack]: unstack,
   [OpType.SetActive]: setActive,
   [OpType.ReorderStack]: reorderStack,

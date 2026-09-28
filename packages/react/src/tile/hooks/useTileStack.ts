@@ -21,6 +21,7 @@ import { displayNameOf } from '../../widget/index.js';
 import type { WidgetManifest } from '../../widget/index.js';
 import { useStackPicker } from '../../board/stackPicking/useStackPicker.js';
 import { useTilePickingMode } from '../internal/useTilePickingMode.js';
+import { useTileStackAdd } from './useTileStackAdd.js';
 
 /** One widget stacked on a tile: its id, display name, position, and whether it's the active one. */
 export interface TileStackItem {
@@ -135,6 +136,10 @@ export interface UseTileStackResult {
   readonly canCombine: boolean;
   readonly startPicking: () => void;
   readonly pickingMode: TilePickingMode;
+  /** Adds a brand-new widget of `type` to this stack and shows it. Rejects with SizeNotAllowed if it can't take the tile's size. */
+  readonly addWidget: (type: string, props?: Readonly<Record<string, unknown>>) => Result<Applied, Rejection>;
+  /** Whether `type` could join this stack: it's registered and allows the tile's size. */
+  readonly canAddWidget: (type: string) => boolean;
 }
 
 /** Structural state and actions for a tile's stack: members, active item, and combine/picking controls. */
@@ -144,9 +149,10 @@ export function useTileStack(tile: Tile): UseTileStackResult {
   const actions = useTileStackActions({ tile, board: activeBoardId, dispatch, createId });
   const combine = useTileCombine(tile);
   const pickingMode = useTilePickingMode(tile).mode;
+  const add = useTileStackAdd(tile);
 
   return useMemo<UseTileStackResult>(
-    () => ({ ...items, ...actions, ...combine, pickingMode }),
-    [items, actions, combine, pickingMode],
+    () => ({ ...items, ...actions, ...combine, ...add, pickingMode }),
+    [items, actions, combine, add, pickingMode],
   );
 }

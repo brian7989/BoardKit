@@ -94,6 +94,29 @@ function TileMenu({ tile }: TileOverlayProps) {
 `tileHeader` — always pass along the `tile` those give you, not one captured earlier, since a
 mid-drag tile is a preview copy.
 
+## Stacking: new widget, or existing tile
+
+A tile's stack can grow two ways, and they aren't interchangeable:
+
+- **`stack.addWidget(type, props?)`** creates a brand-new widget and adds it to this tile's stack,
+  showing it. It needs no free grid space. It's rejected with `SizeNotAllowed` if `type` doesn't
+  allow the tile's size; `stack.canAddWidget(type)` answers that up front, cheaply, for greying
+  out a picker. Under the hood it's one `StackNew` op, so `canApply` works with it too.
+- **`stack.combineWith(tile)`** / **`stack.startPicking()`** move an existing tile's widgets (with
+  their props, names and any stack of their own) onto another tile, and remove the old tile.
+
+```tsx
+function StackWithSheet({ tile }: TileOverlayProps) {
+  const { stack } = useTile(tile);
+  const { widgets } = useWidgetCatalog();
+  return widgets.map((widget) => (
+    <button key={widget.type} disabled={!stack.canAddWidget(widget.type)} onClick={() => stack.addWidget(widget.type)}>
+      {widget.title}
+    </button>
+  ));
+}
+```
+
 ## Recipe: add-widget gallery
 
 ```tsx

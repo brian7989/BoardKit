@@ -49,7 +49,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | `UseTileResult` (type) | `useTile`'s return shape. |
 | `useTileSize` / `UseTileSizeResult` / `TileSizeOption` | A tile's current size, its options, and `set`/`canSet`. |
 | `useTileFloat` / `UseTileFloatResult` | Whether a tile is floating (and snapped Overlay or Free), and `toggle`/`set`/`setFree`. |
-| `useTileStack` / `UseTileStackResult` / `TileStackItem` | A tile's stacked items, and select/unstack/reorder/rename/combine actions. |
+| `useTileStack` / `UseTileStackResult` / `TileStackItem` | A tile's stacked items, and select/unstack/reorder/rename/combine actions, plus `addWidget`/`canAddWidget` to stack a brand-new widget. |
 | `useTileName` / `UseTileNameResult` | A tile's current display name, and `set` to rename it. |
 | `useTileInteraction` / `UseTileInteractionResult` | A tile's live drag/valid/locked state. |
 | `useTileRemove` / `UseTileRemoveResult` | `remove` to delete a tile from its board. |
@@ -86,7 +86,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 |---|---|
 | `BoardsState` / `Tile` / `Size` / `Op` / `Rejection` / `Result` (types) | The core model and result types — see [Engine](engine.md). |
 | `BoardId` / `TileId` / `WidgetId` / `Cell` / `Px` (types) | Branded value types for ids and units. |
-| `OpType` | Every op's discriminant: `Move`, `Resize`, `Add`, `Remove`, `Stack`, `Unstack`, `SetActive`, `ReorderStack`, `RenameWidget`, `AddBoard`, `RemoveBoard`, `SetFloating`, `MoveFloating`, `SetFloatFree`, `SetWidgetProps`. |
+| `OpType` | Every op's discriminant: `Move`, `Resize`, `Add`, `Remove`, `Stack`, `StackNew`, `Unstack`, `SetActive`, `ReorderStack`, `RenameWidget`, `AddBoard`, `RemoveBoard`, `SetFloating`, `MoveFloating`, `SetFloatFree`, `SetWidgetProps`. |
 | `RejectReason` | Why an op was rejected — out of bounds, no free space, size not allowed, stack incompatible, and so on. |
 | `boardId` / `tileId` / `widgetId` / `cell` / `px` | Branded-value constructors for the ids and units above. |
 

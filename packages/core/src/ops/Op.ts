@@ -3,6 +3,7 @@ import type { ResizeOp } from './handlers/resize.js';
 import type { AddOp } from './handlers/add.js';
 import type { RemoveOp } from './handlers/remove.js';
 import type { StackOp } from './handlers/stack.js';
+import type { StackNewOp } from './handlers/stackNew.js';
 import type { UnstackOp } from './handlers/unstack.js';
 import type { SetActiveOp } from './handlers/setActive.js';
 import type { ReorderStackOp } from './handlers/reorderStack.js';
@@ -21,6 +22,7 @@ export type Op =
   | AddOp
   | RemoveOp
   | StackOp
+  | StackNewOp
   | UnstackOp
   | SetActiveOp
   | ReorderStackOp
