@@ -305,4 +305,32 @@ describe('add', () => {
     expect(tile).toMatchObject({ col: 1, row: 2 });
     expect(tile?.float).toBeUndefined();
   });
+
+  it('adds a stacked tile in one op, showing the first widget', () => {
+    const engine = createEngine({ grid: GRID, catalog: { [WIDGET_TYPE]: { sizes: [SIZE_SMALL] }, other: { sizes: [SIZE_SMALL] } } });
+    const result = engine.apply(engine.empty(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('t0'),
+      widget: { id: widgetId('w0'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      stack: [{ id: widgetId('w1'), type: 'other' }],
+    });
+    const tile = result.ok ? result.value.state.boards[0]?.tiles[0] : undefined;
+    expect(tile?.items.map((item) => item.id)).toEqual([widgetId('w0'), widgetId('w1')]);
+    expect(tile?.active).toBe(0);
+  });
+
+  it('rejects a stack when any widget in it does not allow the size', () => {
+    const engine = createEngine({ grid: GRID, catalog: { [WIDGET_TYPE]: { sizes: [SIZE_SMALL] }, big: { sizes: [{ w: cell(2), h: cell(2) }] } } });
+    const result = engine.apply(engine.empty(), {
+      type: OpType.Add,
+      board: BOARD,
+      tileId: tileId('t0'),
+      widget: { id: widgetId('w0'), type: WIDGET_TYPE },
+      size: SIZE_SMALL,
+      stack: [{ id: widgetId('w1'), type: 'big' }],
+    });
+    expect(result.ok ? null : result.error.reason).toBe(RejectReason.SizeNotAllowed);
+  });
 });

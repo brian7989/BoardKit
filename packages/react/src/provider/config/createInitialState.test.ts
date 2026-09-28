@@ -30,6 +30,25 @@ describe('createInitialState', () => {
     expect(clash).not.toMatchObject({ col: 0, row: 0 });
   });
 
+  it('seeds a stack as one tile, showing the entry widget first, with each widget keeping its props and name', () => {
+    const state = stateFor([{ widget: 'big', size: '1x1', at: [1, 0], stack: [{ widget: 'small', props: { a: 1 }, name: 'Second' }] }]);
+    const [tile] = state.boards[0]?.tiles ?? [];
+    expect(state.boards[0]?.tiles).toHaveLength(1);
+    expect(tile).toMatchObject({ col: 1, row: 0, active: 0 });
+    expect(tile?.items.map((item) => item.type)).toEqual(['big', 'small']);
+    expect(tile?.items[1]).toMatchObject({ id: 'w-small', props: { a: 1 }, displayName: 'Second' });
+  });
+
+  it('defaults a stack to the largest size every widget in it allows', () => {
+    const state = stateFor([{ widget: 'big', stack: [{ widget: 'small' }] }]);
+    expect(state.boards[0]?.tiles[0]?.size).toEqual({ w: 1, h: 1 });
+  });
+
+  it('skips an unregistered stack widget but keeps the rest of the stack', () => {
+    const state = stateFor([{ widget: 'big', stack: [{ widget: 'nope' }, { widget: 'small' }] }]);
+    expect(state.boards[0]?.tiles[0]?.items.map((item) => item.type)).toEqual(['big', 'small']);
+  });
+
   it('first-fits at the largest fitting size and spills onto new pages', () => {
     const state = stateFor([{ widget: 'big' }, { widget: 'small' }]);
     expect(state.boards).toHaveLength(2);

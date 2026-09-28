@@ -1,5 +1,6 @@
 import type { SizeInput } from '../../shared/size/SizeInput.js';
 import type { AtInput } from './AtInput.js';
+import type { InitialStackItem } from './InitialStackItem.js';
 
 /**
  * One widget an uncontrolled `BoardProvider` starts with. Omit `page` for the default
@@ -18,4 +19,6 @@ export interface InitialLayoutTile {
    * the Overlay layer by default, or unsnapped and collision-free with `free: true`.
    */
   readonly float?: { readonly x: number; readonly y: number; readonly free?: boolean };
+  /** More widgets stacked under this one on the same tile, which shows `widget` first. Every widget must allow the tile's size. */
+  readonly stack?: readonly InitialStackItem[];
 }

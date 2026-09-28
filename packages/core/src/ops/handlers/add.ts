@@ -22,16 +22,23 @@ export interface AddOp {
   // Adds the tile already floating at this position, instead of onto the grid: snapped into the
   // Overlay layer by default, or unsnapped and collision-free with `free: true`.
   readonly float?: { readonly x: number; readonly y: number; readonly free?: boolean };
+  // More widgets stacked under `widget` on the same tile; every one of them must allow `size`.
+  readonly stack?: readonly WidgetInstance[];
+}
+
+function itemsOf(op: AddOp): readonly WidgetInstance[] {
+  return [op.widget, ...(op.stack ?? [])];
 }
 
 export function add(op: AddOp, ctx: EngineContext, state: BoardsState): OpOutcome {
   const board = findBoard(state, op.board);
   if (!board) return err({ reason: RejectReason.UnknownTarget });
 
-  const manifest = ctx.catalog[op.widget.type];
-  if (!manifest || !isSizeAllowed(op.size, manifest.sizes)) {
-    return err({ reason: RejectReason.SizeNotAllowed });
-  }
+  const sizeAllowed = itemsOf(op).every((item) => {
+    const manifest = ctx.catalog[item.type];
+    return manifest !== undefined && isSizeAllowed(op.size, manifest.sizes);
+  });
+  if (!sizeAllowed) return err({ reason: RejectReason.SizeNotAllowed });
 
   if (op.float?.free) return addFree({ op, float: op.float, ctx, state, board });
   if (op.float) return addOverlay({ op, float: op.float, ctx, state, board });
@@ -47,7 +54,7 @@ interface AddGridInput {
 
 function addGrid(input: AddGridInput): OpOutcome {
   const { op, ctx, state, board } = input;
-  const tile: Tile = { id: op.tileId, col: cell(0), row: cell(0), size: op.size, items: [op.widget], active: 0 };
+  const tile: Tile = { id: op.tileId, col: cell(0), row: cell(0), size: op.size, items: itemsOf(op), active: 0 };
   const placement = placeTile({ board, tile, size: op.size, ctx, ...(op.at ? { at: op.at } : {}) });
   if (!placement.ok) return placement;
 
@@ -88,7 +95,7 @@ function addFree(input: AddFloatInput): OpOutcome {
   const { op, ctx, state, board } = input;
   const origin = floatingOrigin(board, op.size, ctx);
   const float = { ...clampFloat(input.float, op.size, ctx), free: true };
-  const tile: Tile = { id: op.tileId, col: origin.x, row: origin.y, size: op.size, items: [op.widget], active: 0, float };
+  const tile: Tile = { id: op.tileId, col: origin.x, row: origin.y, size: op.size, items: itemsOf(op), active: 0, float };
   const boards = state.boards.map((candidate) => (candidate.id === board.id ? { ...board, tiles: [...board.tiles, tile] } : candidate));
   const to = rectOfTile({ x: cell(Math.round(float.x)), y: cell(Math.round(float.y)) }, op.size);
   const change: Change = { tile: op.tileId, board: board.id, kind: ChangeKind.Added, to };
@@ -101,7 +108,7 @@ function addOverlay(input: AddFloatInput): OpOutcome {
   const { op, ctx, state, board } = input;
   const origin = floatingOrigin(board, op.size, ctx);
   const at = { x: cell(Math.round(input.float.x)), y: cell(Math.round(input.float.y)) };
-  const tile: Tile = { id: op.tileId, col: origin.x, row: origin.y, size: op.size, items: [op.widget], active: 0 };
+  const tile: Tile = { id: op.tileId, col: origin.x, row: origin.y, size: op.size, items: itemsOf(op), active: 0 };
   const placed = placeOverlay({ board, tile, size: op.size, at, ctx });
   if (!placed.ok) return placed;
 

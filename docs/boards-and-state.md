@@ -55,6 +55,7 @@ const boards = defineBoards({
     { widget: 'clock', page: 1, at: [0, 0], name: 'Backup clock' },
     { widget: 'weather', float: { x: 1, y: 1 } },
     { widget: 'countdown', float: { x: 0.5, y: 0.5, free: true } },
+    { widget: 'stocks', size: '2x1', stack: [{ widget: 'crypto' }, { widget: 'stocks', props: { symbol: 'NVDA' }, name: 'NVDA' }] },
   ],
 });
 ```
@@ -70,6 +71,11 @@ const boards = defineBoards({
 - Give `float` to start the tile already floating above the grid instead of on it: snapped into
   the Overlay layer at an integer `{ x, y }` by default, or unsnapped and collision-free with
   `free: true` and a fractional position. See [Floating tiles](layout-and-breakpoints.md#floating-tiles).
+- Give `stack` to start the tile as a stack: the entry's own widget shows first, and the `stack`
+  widgets (each with optional `props` and `name`) sit under it on the same tile. Every widget in a
+  stack must allow the tile's size; without a `size`, the stack takes the largest one they all
+  allow. Stacks are shared across breakpoints like any other widget: author a stack in one
+  breakpoint's layout, and another layout can still position it by listing its first widget.
 - `size`, `props` and `name` default to the widget's first size, `defaultProps`, and `title`.
 
 `createInitialState(config)` builds the same `BoardsState` `initialLayout` produces, without a

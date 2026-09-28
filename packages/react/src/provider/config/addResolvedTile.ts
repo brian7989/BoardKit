@@ -21,5 +21,6 @@ export function addResolvedTile(input: AddResolvedTileInput): Result<Applied, Re
     size: resolved.size,
     ...(at ? { at } : {}),
     ...(resolved.float ? { float: resolved.float } : {}),
+    ...(resolved.stack.length > 0 ? { stack: resolved.stack } : {}),
   });
 }

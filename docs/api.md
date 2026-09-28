@@ -18,6 +18,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | `GridBreakpoint` (type) | One entry of a responsive grid: `minWidth`, `cols`, `rows`, optional `cellAspect`, optional `initialLayout`. |
 | `ResolvedBreakpoint` (type) | A `GridBreakpoint` with its own engine already built. |
 | `InitialLayoutTile` (type) | One widget an uncontrolled board starts with — see `defineBoards`'s `initialLayout`. |
+| `InitialStackItem` (type) | A widget stacked under an `InitialLayoutTile`'s own, via its `stack`. |
 | `ChangeMeta` (type) | `onChange`'s second argument: why the state changed (`'op'`, `'reflow'` or `'reset'`). |
 | `ChangeReason` | The `ChangeMeta` reasons: `'op'`, `'reflow'` and `'reset'`. |
 | `DragFrom` | Where a tile's drag may start: `'header'` (default, header strip only) or `'tile'` (anywhere). |

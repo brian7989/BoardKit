@@ -10,6 +10,7 @@ export type {
   GridBreakpoint,
   ResolvedBreakpoint,
   InitialLayoutTile,
+  InitialStackItem,
   BoardList,
   BoardListItem,
   WidgetCatalog,

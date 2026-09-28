@@ -15,8 +15,9 @@ export interface AddMissingTilesInput {
   readonly entries: readonly InitialLayoutTile[];
 }
 
-function tileIds(state: BoardsState): ReadonlySet<string> {
-  return new Set(state.boards.flatMap((board) => board.tiles.map((tile) => tile.id)));
+// By widget, not tile: a widget one layout stacks and another lists on its own is still one widget.
+function widgetIds(state: BoardsState): ReadonlySet<string> {
+  return new Set(state.boards.flatMap((board) => board.tiles.flatMap((tile) => tile.items.map((item) => item.id))));
 }
 
 // Its authored spot belongs to the other grid, so here it just goes wherever first-fit finds room.
@@ -27,8 +28,8 @@ function unpositioned(resolved: ResolvedInitialTile): ResolvedInitialTile {
 
 /** Adds every widget another breakpoint's layout lists but `state` doesn't have yet, so each breakpoint shares one set of widgets. */
 export function addMissingTiles(input: AddMissingTilesInput): BoardsState {
-  const present = tileIds(input.state);
-  const missing = resolveEntries({ config: input.from, counts: new Map() }, input.entries).filter((item) => !present.has(item.resolved.tileId));
+  const present = widgetIds(input.state);
+  const missing = resolveEntries({ config: input.from, counts: new Map() }, input.entries).filter((item) => !present.has(item.resolved.widget.id));
   const ctx: InitialPlacementCtx = { config: input.config, counts: new Map() };
   let progress: PageProgress = { state: input.state, pages: input.state.boards.map((board) => board.id) };
   for (const item of missing) progress = placeFirstFit(ctx, progress, unpositioned(item.resolved));

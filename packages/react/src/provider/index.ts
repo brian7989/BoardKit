@@ -8,6 +8,7 @@ export type { ResolvedBreakpoint } from './config/ResolvedBreakpoint.js';
 export type { GridBreakpoint } from './config/GridBreakpoint.js';
 export type { DefineBoardsInput } from './config/defineBoards.js';
 export type { InitialLayoutTile } from './config/InitialLayoutTile.js';
+export type { InitialStackItem } from './config/InitialStackItem.js';
 export { BoardProvider } from './BoardProvider.js';
 export type { BoardProviderProps } from './BoardProvider.js';
 export type { ChangeMeta } from './ChangeMeta.js';

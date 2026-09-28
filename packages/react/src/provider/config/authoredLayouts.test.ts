@@ -161,4 +161,20 @@ describe('authored layouts per breakpoint', () => {
     const ids = (state: BoardsState) => state.boards.flatMap((board) => board.tiles.map((tile) => tile.items[0]?.id)).sort();
     expect(ids(tablet)).toEqual(ids(desktop));
   });
+
+  it('keeps a stack authored on desktop as one tile on tablet, without duplicating its widgets', () => {
+    const stacked = defineBoards({
+      grid: [
+        { minWidth: 1000, cols: 12, rows: 6, cellAspect: 0.8 },
+        { minWidth: 600, cols: 8, rows: 10, initialLayout: TABLET },
+        { minWidth: 0, cols: 4, rows: 8 },
+      ],
+      widgets,
+      initialLayout: [DESKTOP[0], DESKTOP[1], { widget: 'robots', size: '4x2', at: [8, 2], stack: [{ widget: 'inspector' }] }].filter((entry) => entry !== undefined),
+    });
+    const tablet = createInitialState(stacked, { width: TABLET_WIDTH });
+    const widgetsOnTablet = tablet.boards.flatMap((board) => board.tiles.flatMap((tile) => tile.items.map((item) => item.id)));
+    expect(widgetsOnTablet.filter((id) => id === 'w-inspector')).toHaveLength(1);
+    expect(positions(tablet)['t-robots']).toBe('0,7 4x3 @default');
+  });
 });
