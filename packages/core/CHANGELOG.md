@@ -1,5 +1,14 @@
 # boardkit-core
 
+## 0.1.4
+
+### Patch Changes
+
+- d3a54ab: - **Default stacks in `initialLayout`**: an entry's new `stack` lists more widgets (each with optional `props` and `name`) stacked under its own widget on the same tile, which shows the entry's widget first. Without a `size`, a stack takes the largest size every widget in it allows. Stacks are shared across breakpoints like any other widget, and a widget one layout stacks and another lists on its own is still one widget.
+  - **`Add` op `stack`**: the core `Add` op takes an optional `stack` of extra widgets, adding a stacked tile in one step; it's rejected with `SizeNotAllowed` if any widget in it doesn't allow the size.
+- 7926e3d: - **Stack a brand-new widget onto a tile**: `useTileStack(tile).addWidget(type, props?)` (also on `useTile(tile).stack`) adds a new widget to the tile's stack in one step and shows it. It needs no free grid space, and it's rejected with `SizeNotAllowed` if the widget doesn't allow the tile's size. `canAddWidget(type)` checks that up front for greying out a picker, and `canApply` works with it too.
+  - **New `StackNew` op**: `{ type: OpType.StackNew, board, onto, widget }`, the core op behind `addWidget`.
+
 ## 0.1.3
 
 ### Patch Changes
