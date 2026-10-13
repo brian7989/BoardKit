@@ -30,7 +30,7 @@ describe('parseCandidate', () => {
 
   it('migrates a legacy version 1 state (no layouts) in with an empty layouts map', () => {
     const result = parseCandidate({ ...VALID, version: 1 });
-    expect(result).toEqual({ ok: true, value: { grid: VALID.grid, boards: VALID.boards, layouts: {} } });
+    expect(result).toEqual({ ok: true, value: { grid: VALID.grid, boards: VALID.boards, layouts: {}, parked: [] } });
   });
 
   it('migrates a v2 tile float to Free, preserving its old collision-free behaviour', () => {

@@ -10,6 +10,7 @@ export const RejectReason = {
   LastBoard: 'last-board',
   UnknownTarget: 'unknown-target',
   NotFloating: 'not-floating',
+  DuplicateId: 'duplicate-id',
 } as const;
 
 export type RejectReason = ValueOf<typeof RejectReason>;

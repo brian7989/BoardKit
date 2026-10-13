@@ -9,6 +9,7 @@ const MESSAGE: Record<RejectReason, string> = {
   [RejectReason.LastBoard]: "Can't remove the only board.",
   [RejectReason.UnknownTarget]: 'That tile or board no longer exists.',
   [RejectReason.NotFloating]: "That widget isn't floating.",
+  [RejectReason.DuplicateId]: 'Something with that id is already on the board.',
 };
 
 /** One friendly, ready-to-show English line for a `Rejection`, exhaustive over `RejectReason`. */

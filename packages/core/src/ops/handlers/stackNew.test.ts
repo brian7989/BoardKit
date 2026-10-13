@@ -27,4 +27,9 @@ describe('stackNew', () => {
     expect(wrongSize.ok ? null : wrongSize.error.reason).toBe(RejectReason.SizeNotAllowed);
     expect(missing.ok ? null : missing.error.reason).toBe(RejectReason.UnknownTarget);
   });
+
+  it('rejects DuplicateId for a widget id already on the board, instead of throwing', () => {
+    const result = engine.apply(fullBoard(), { type: OpType.StackNew, board: BOARD, onto: tileId('t0'), widget: { id: widgetId('w0'), type: 'b' } });
+    expect(result.ok ? null : result.error.reason).toBe(RejectReason.DuplicateId);
+  });
 });

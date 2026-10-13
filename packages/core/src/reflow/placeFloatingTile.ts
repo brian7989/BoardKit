@@ -1,6 +1,6 @@
 import { clampRectToBoard } from '../shared/geometry/Rect.js';
 import { cell } from '../shared/units/Cell.js';
-import type { Size } from '../shared/sizes/Size.js';
+import { sizesEqual, type Size } from '../shared/sizes/Size.js';
 import { isFree, layerOf, TileLayer, type Tile } from '../model/index.js';
 import { findFreeSpace } from '../solver/index.js';
 import { fitSize } from './fitSize.js';
@@ -38,23 +38,18 @@ function placeInOverlay(input: PlaceInOverlayInput): Tile | null {
 }
 
 // Floating tiles sit outside grid occupancy, so they stay on their own page: a Free tile is just
-// clamped, and a snapped Overlay tile falls back to Free (clamped), never dropped, if it can't fit.
+// clamped, and a snapped Overlay tile falls back to Free (clamped) if it can't fit in the Overlay layer.
 export function placeFloatingTile(input: ReflowPlacementInput): void {
-  const { entry, ctx, pages, changes } = input;
-  const page = pages.find((candidate) => candidate.id === entry.board);
-  if (!page) return;
-
-  const size = fitSize(entry.tile, ctx);
-  if (!size) {
+  const { entry, ctx, pages, changes, parked } = input;
+  // A restored layout may not have this tile's page; the first page stands in rather than losing it.
+  const page = pages.find((candidate) => candidate.id === entry.board) ?? pages[0];
+  const size = page ? fitSize(entry.tile, ctx) : null;
+  if (!page || !size) {
+    parked.push(entry.tile);
     changes.push({ tile: entry.tile.id, board: entry.board, kind: ReflowChangeKind.Dropped });
     return;
   }
-  if (size.w !== entry.tile.size.w || size.h !== entry.tile.size.h) {
-    changes.push({ tile: entry.tile.id, board: entry.board, kind: ReflowChangeKind.Resized });
-  }
-  if (isFree(entry.tile)) {
-    page.tiles.push(clampToFree(entry.tile, size, ctx.grid));
-    return;
-  }
-  page.tiles.push(placeInOverlay({ page, tile: entry.tile, size, ctx }) ?? clampToFree(entry.tile, size, ctx.grid));
+  if (!sizesEqual(size, entry.tile.size)) changes.push({ tile: entry.tile.id, board: entry.board, kind: ReflowChangeKind.Resized });
+  const overlay = isFree(entry.tile) ? null : placeInOverlay({ page, tile: entry.tile, size, ctx });
+  page.tiles.push(overlay ?? clampToFree(entry.tile, size, ctx.grid));
 }

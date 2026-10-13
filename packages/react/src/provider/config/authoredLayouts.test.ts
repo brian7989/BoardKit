@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { boardId, cell, OpType, tileId, widgetId, type BoardsState, type Engine } from 'boardkit-core';
 import { defineWidget } from '../../widget/index.js';
 import { defineBoards } from './defineBoards.js';
@@ -176,5 +176,29 @@ describe('authored layouts per breakpoint', () => {
     const widgetsOnTablet = tablet.boards.flatMap((board) => board.tiles.flatMap((tile) => tile.items.map((item) => item.id)));
     expect(widgetsOnTablet.filter((id) => id === 'w-inspector')).toHaveLength(1);
     expect(positions(tablet)['t-robots']).toBe('0,7 4x3 @default');
+  });
+});
+
+describe('authored layout edge cases', () => {
+  const single = (initialLayout: readonly InitialLayoutTile[]) => createInitialState(defineBoards({ grid: { cols: 4, rows: 2 }, widgets, initialLayout }));
+
+  it('first-fits an entry whose `at` is off the board instead of dropping it', () => {
+    expect(Object.keys(positions(single([{ widget: 'robots', size: '4x2', at: [9, 9] }])))).toEqual(['t-robots']);
+  });
+
+  it('warns and falls back to the default size for an authored size the widget does not allow', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(positions(single([{ widget: 'robots', size: '8x3' }]))['t-robots']).toBe('0,0 4x2 @default');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"robots" a 8x3 size it doesn\'t allow'));
+    warn.mockRestore();
+  });
+
+  it('starts on the narrowest breakpoint for a width below every minWidth', () => {
+    expect(createInitialState(config, { width: -50 }).grid).toEqual({ cols: 4, rows: 8 });
+  });
+
+  it('restores the authored tablet layout exactly after a detour through the phone', () => {
+    const viaPhone = engineAt(TABLET_WIDTH).reflow(engineAt(PHONE_WIDTH).reflow(createInitialState(config)).state).state;
+    expect(positions(viaPhone)).toEqual(expected(TABLET_SPEC));
   });
 });

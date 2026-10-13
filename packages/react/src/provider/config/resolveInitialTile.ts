@@ -41,13 +41,23 @@ function defaultSize(ctx: InitialPlacementCtx, manifest: WidgetManifest, stacked
   return heroSize(shared.length > 0 ? { ...manifest, sizes: shared } : manifest, ctx.config.grid);
 }
 
+// An authored size the widget (or its stack) doesn't allow would otherwise drop the entry without a trace.
+function authoredSize(ctx: InitialPlacementCtx, entry: InitialLayoutTile, fallback: () => Size): Size {
+  if (!entry.size) return fallback();
+  const size = parseSizeInput(entry.size);
+  const manifests = [ctx.config.widgets.get(entry.widget), ...(entry.stack ?? []).map((item) => ctx.config.widgets.get(item.widget))];
+  if (manifests.every((manifest) => !manifest || isSizeAllowed(size, manifest.sizes))) return size;
+  warnOnce(`initial-size:${entry.widget}:${size.w}x${size.h}`, `Boards: initialLayout gives "${entry.widget}" a ${size.w}x${size.h} size it doesn't allow; using its default size.`);
+  return fallback();
+}
+
 /** Resolves one layout entry's manifest, size, ids and widget instances, or null if unregistered. */
 export function resolveInitialTile(ctx: InitialPlacementCtx, entry: InitialLayoutTile): ResolvedInitialTile | null {
   const manifest = ctx.config.widgets.get(entry.widget);
   if (!manifest) return null;
   const ids = nextInitialId(ctx.counts, entry.widget);
   const stacked = resolveStack(ctx, entry);
-  const size = entry.size ? parseSizeInput(entry.size) : defaultSize(ctx, manifest, stacked);
+  const size = authoredSize(ctx, entry, () => defaultSize(ctx, manifest, stacked));
   return {
     manifest,
     size,

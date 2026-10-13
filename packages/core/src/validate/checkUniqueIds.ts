@@ -10,7 +10,9 @@ interface SeenSets {
 
 export function checkUniqueIds(state: ValidCandidate): readonly Issue[] {
   const seen: SeenSets = { boards: new Set(), tiles: new Set(), widgets: new Set() };
-  return state.boards.flatMap((board) => issuesForBoard(board, seen));
+  // Parked tiles count: an id is taken whether or not its tile fits the current grid.
+  const parked = (state.parked ?? []).flatMap((tile) => issuesForTile(tile, undefined, seen));
+  return [...state.boards.flatMap((board) => issuesForBoard(board, seen)), ...parked];
 }
 
 function issuesForBoard(board: Board, seen: SeenSets): readonly Issue[] {
@@ -19,7 +21,7 @@ function issuesForBoard(board: Board, seen: SeenSets): readonly Issue[] {
   return [...boardIssues, ...tileIssues];
 }
 
-function issuesForTile(tile: Tile, boardId: BoardId, seen: SeenSets): readonly Issue[] {
+function issuesForTile(tile: Tile, boardId: BoardId | undefined, seen: SeenSets): readonly Issue[] {
   const tileIssues = markSeen({ seen: seen.tiles, id: tile.id, message: `Duplicate tile id ${tile.id}.`, board: boardId, tile: tile.id });
   const widgetIssues = tile.items.flatMap((item) =>
     markSeen({ seen: seen.widgets, id: item.id, message: `Duplicate widget id ${item.id}.`, board: boardId, tile: tile.id }),

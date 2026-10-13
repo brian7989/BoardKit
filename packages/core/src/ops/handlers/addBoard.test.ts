@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createEngine, boardId, OpType, ChangeKind, type Engine } from '../../index.js';
+import { createEngine, boardId, OpType, RejectReason, ChangeKind, type Engine } from '../../index.js';
 
 const GRID = { cols: 4, rows: 4 };
 
@@ -19,10 +19,9 @@ describe('addBoard', () => {
 
   // Documents current behavior: a duplicate id is a caller bug, not a RejectReason, and
   // surfaces as validateOutcome's defensive throw rather than a Result.
-  it('throws rather than silently duplicating when the board id already exists', () => {
+  it('rejects DuplicateId rather than silently duplicating when the board id already exists', () => {
     const engine = makeEngine();
-    expect(() => engine.apply(engine.empty(), { type: OpType.AddBoard, board: boardId('default') })).toThrow(
-      /Op handler produced an invalid state/,
-    );
+    const result = engine.apply(engine.empty(), { type: OpType.AddBoard, board: boardId('default') });
+    expect(result.ok ? null : result.error.reason).toBe(RejectReason.DuplicateId);
   });
 });

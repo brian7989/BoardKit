@@ -35,6 +35,12 @@ spills overflow onto new pages. Either way, the result commits through the norma
 `value`/`onChange` path like any other change, with `meta.reason` set to `'reflow'` — see
 [Boards & state](boards-and-state.md) for `ChangeMeta`.
 
+A widget with no size that fits a breakpoint's grid at all (a `4x2`-only widget on a 2-column phone
+grid, say) isn't deleted there. It's **parked**: kept in the state's `parked` list, hidden on that
+breakpoint, and put back (at its remembered spot, when it has one) as soon as the board switches to
+a grid it fits. Its reflow change is reported with kind `'dropped'`. Reset clears the parked list
+along with everything else.
+
 ## `useGrid`
 
 Reads the active breakpoint's resolved grid from inside a provider:

@@ -333,4 +333,19 @@ describe('add', () => {
     });
     expect(result.ok ? null : result.error.reason).toBe(RejectReason.SizeNotAllowed);
   });
+
+  it('rejects DuplicateId for a taken tile id, a taken widget id, or a repeated id inside its own stack', () => {
+    const engine = createEngine({ grid: GRID, catalog: { [WIDGET_TYPE]: { sizes: [SIZE_SMALL] } } });
+    const first = engine.apply(engine.empty(), { type: OpType.Add, board: BOARD, tileId: tileId('t0'), widget: { id: widgetId('w0'), type: WIDGET_TYPE }, size: SIZE_SMALL });
+    if (!first.ok) throw new Error('fixture add should succeed');
+    const tries = [
+      { tileId: tileId('t0'), widget: { id: widgetId('w9'), type: WIDGET_TYPE } },
+      { tileId: tileId('t9'), widget: { id: widgetId('w0'), type: WIDGET_TYPE } },
+      { tileId: tileId('t9'), widget: { id: widgetId('w9'), type: WIDGET_TYPE }, stack: [{ id: widgetId('w9'), type: WIDGET_TYPE }] },
+    ];
+    for (const extra of tries) {
+      const result = engine.apply(first.value.state, { type: OpType.Add, board: BOARD, size: SIZE_SMALL, ...extra });
+      expect(result.ok ? null : result.error.reason).toBe(RejectReason.DuplicateId);
+    }
+  });
 });

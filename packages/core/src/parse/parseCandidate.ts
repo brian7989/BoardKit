@@ -6,6 +6,7 @@ import { readNumber } from './readers/readNumber.js';
 import { readObject } from './readers/readObject.js';
 import { parseBoard } from './parseBoard.js';
 import { parseLayouts } from './parseLayouts.js';
+import { parseParked } from './parseParked.js';
 
 // The oldest wire version this build still reads, migrating it in with no saved layouts.
 const MIN_MIGRATABLE_STATE_VERSION = 1;
@@ -25,10 +26,21 @@ export function parseCandidate(input: unknown): Result<ValidCandidate, readonly 
   if (!grid.ok) return err(grid.error);
   const boards = parseBoards(object.value['boards'], '$.boards', version.value);
   if (!boards.ok) return err(boards.error);
-  const layouts = parseLayouts(object.value['layouts'], '$.layouts', version.value);
-  if (!layouts.ok) return err(layouts.error);
+  const extras = parseExtras(object.value, version.value);
+  if (!extras.ok) return err(extras.error);
 
-  return ok({ grid: grid.value, boards: boards.value, layouts: layouts.value });
+  return ok({ grid: grid.value, boards: boards.value, ...extras.value });
+}
+
+type Extras = Required<Pick<ValidCandidate, 'layouts' | 'parked'>>;
+
+// The parts beyond the live boards: other breakpoints' remembered layouts, and parked tiles.
+function parseExtras(object: Readonly<Record<string, unknown>>, version: number): Result<Extras, readonly Issue[]> {
+  const layouts = parseLayouts(object['layouts'], '$.layouts', version);
+  if (!layouts.ok) return err(layouts.error);
+  const parked = parseParked(object['parked'], '$.parked', version);
+  if (!parked.ok) return err(parked.error);
+  return ok({ layouts: layouts.value, parked: parked.value });
 }
 
 function parseGrid(value: unknown, path: string): Result<{ cols: number; rows: number }, readonly Issue[]> {

@@ -15,12 +15,13 @@ function withSavedPosition(tile: Tile, size: Size, at: LayoutTile): Tile {
   return at.float ? { ...rest, size, col: at.col, row: at.row, float: at.float } : { ...rest, size, col: at.col, row: at.row };
 }
 
-// Restores a saved position verbatim, after the same shrink-or-drop safety net a fresh placement
+// Restores a saved position verbatim, after the same shrink-or-park safety net a fresh placement
 // gets — so an unedited round trip through another breakpoint lands back exactly where it started.
 export function placeAtSavedSpot(input: PlaceAtSavedSpotInput): void {
-  const { entry, at, ctx, pages, changes } = input;
+  const { entry, at, ctx, pages, changes, parked } = input;
   const size = fitSize({ ...entry.tile, size: at.size }, ctx);
   if (!size) {
+    parked.push(entry.tile);
     changes.push({ tile: entry.tile.id, board: entry.board, kind: ReflowChangeKind.Dropped });
     return;
   }

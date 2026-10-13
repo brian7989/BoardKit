@@ -11,6 +11,8 @@ import { ChangeReason } from './ChangeReason.js';
 import { defineBoards } from './config/defineBoards.js';
 import { defineWidget } from '../widget/index.js';
 import { useBoards } from './hooks/useBoards.js';
+import { useResetBoards } from './hooks/useResetBoards.js';
+import { loadBoards } from './persistence/loadBoards.js';
 
 afterEach(cleanup);
 
@@ -214,5 +216,72 @@ describe('breakpoint reflow', () => {
     const tiles = stored?.ok ? stored.value.boards.flatMap((board) => board.tiles.map((tile) => tile.id)) : null;
     expect(tiles).toEqual(['t-small']);
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('brings back a widget that fit no size at the narrow breakpoint once the board widens again', () => {
+    const wideOnly = defineWidget({ type: 'wideOnly', title: 'Wide only', sizes: ['3x1'], component: () => null });
+    const parking = defineBoards({
+      grid: [
+        { minWidth: 600, cols: 6, rows: 4 },
+        { minWidth: 0, cols: 2, rows: 4 },
+      ],
+      widgets: [widget, wideOnly],
+      initialLayout: [{ widget: 'wideOnly', at: [3, 2] }, { widget: 'small' }],
+    });
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    render(
+      <BoardProvider config={parking} onChange={onChange}>
+        <Board />
+      </BoardProvider>,
+    );
+    resizeTo(NARROW_WIDTH);
+    const narrow = onChange.mock.calls.at(-1)?.[0];
+    expect(narrow?.boards[0]?.tiles.map((tile) => tile.id)).toEqual(['t-small']);
+    resizeTo(WIDE_WIDTH);
+    const wide = onChange.mock.calls.at(-1)?.[0];
+    expect(wide?.boards[0]?.tiles.find((tile) => tile.id === tileId('t-wideOnly'))).toMatchObject({ col: 3, row: 2 });
+  });
+
+  it('resets to the narrow breakpoint authored layout while at that breakpoint, for a controlled host too', () => {
+    const authored = defineBoards({
+      grid: [
+        { minWidth: 600, cols: 6, rows: 4 },
+        { minWidth: 0, cols: 2, rows: 4, initialLayout: [{ widget: 'small', at: [1, 3] }] },
+      ],
+      widgets: [widget],
+      initialLayout: [{ widget: 'small', at: [5, 0] }],
+    });
+    function ResetButton() {
+      const reset = useResetBoards();
+      return <button onClick={reset}>reset</button>;
+    }
+    function Host() {
+      const [state, setState] = useState(() => loadBoards(authored));
+      return (
+        <BoardProvider config={authored} value={state} onChange={(next) => setState(next)}>
+          <ResetButton />
+          <Board />
+          <span data-testid="spot">{state.boards[0]?.tiles.map((tile) => `${tile.col},${tile.row}`).join(' ')}</span>
+        </BoardProvider>
+      );
+    }
+    render(<Host />);
+    resizeTo(NARROW_WIDTH);
+    expect(screen.getByTestId('spot')).toHaveTextContent('1,3');
+    act(() => screen.getByText('reset').click());
+    expect(screen.getByTestId('spot')).toHaveTextContent('1,3');
+  });
+
+  it('keeps working when localStorage refuses to save', () => {
+    const quota = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    render(
+      <BoardProvider config={config} defaultValue={seedState()} storageKey="full-storage">
+        <Board />
+      </BoardProvider>,
+    );
+    expect(() => act(() => window.dispatchEvent(new Event('pagehide')))).not.toThrow();
+    expect(quota).toHaveBeenCalled();
   });
 });

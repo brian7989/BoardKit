@@ -2,13 +2,14 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render, screen } from '@testing-library/react';
-import { boardId, cell, OpType, tileId, type BoardsState } from 'boardkit-core';
+import { boardId, cell, OpType, tileId, widgetId, type BoardsState } from 'boardkit-core';
 import { Board } from '../../board/Board.js';
 import { BoardProvider } from '../BoardProvider.js';
 import type { ChangeMeta } from '../ChangeMeta.js';
 import { ChangeReason } from '../ChangeReason.js';
 import { defineBoards } from '../config/defineBoards.js';
 import { loadBoards } from '../persistence/loadBoards.js';
+import { createInitialState } from '../config/createInitialState.js';
 import { defineWidget, type WidgetProps } from '../../widget/index.js';
 import { useBoards } from './useBoards.js';
 import { useResetBoards } from './useResetBoards.js';
@@ -77,6 +78,24 @@ describe('WidgetProps.setProps', () => {
     expect(screen.getByText('view:cards')).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(250));
     expect(loadBoards(config, KEY).boards[0]?.tiles[0]?.items[0]?.props).toEqual({ view: 'cards' });
+  });
+});
+
+describe('setProps on a stack', () => {
+  it('updates the widget showing, not the first one in the stack', () => {
+    const single = defineBoards({ grid: { cols: 3, rows: 1 }, widgets: [toggle], initialLayout: [{ widget: 'toggle', props: { view: 'grid' } }] });
+    const base = createInitialState(single);
+    const added = single.engine.apply(base, { type: OpType.StackNew, board: boardId('default'), onto: tileId('t-toggle'), widget: { id: widgetId('w-second'), type: 'toggle', props: { view: 'table' } } });
+    if (!added.ok) throw new Error('fixture StackNew should succeed');
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    render(
+      <BoardProvider config={single} defaultValue={added.value.state} onChange={onChange}>
+        <Board />
+      </BoardProvider>,
+    );
+    act(() => screen.getByText('view:table').click());
+    const items = onChange.mock.calls.at(-1)?.[0].boards[0]?.tiles[0]?.items;
+    expect(items?.map((item) => item.props)).toEqual([{ view: 'grid' }, { view: 'cards' }]);
   });
 });
 

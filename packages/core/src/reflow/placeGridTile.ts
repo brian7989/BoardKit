@@ -35,9 +35,10 @@ function firstFit(input: FirstFitInput): FirstFitResult {
 
 // First-fit across existing pages in reading order, opening a fresh one only once none has room.
 export function placeGridTile(input: ReflowPlacementInput): void {
-  const { entry, ctx, pages, changes } = input;
+  const { entry, ctx, pages, changes, parked } = input;
   const size = fitSize(entry.tile, ctx);
   if (!size) {
+    parked.push(entry.tile);
     changes.push({ tile: entry.tile.id, board: entry.board, kind: ReflowChangeKind.Dropped });
     return;
   }

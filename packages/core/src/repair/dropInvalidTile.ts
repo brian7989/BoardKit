@@ -6,5 +6,6 @@ export function dropInvalidTile(candidate: ValidCandidate, tileId: TileId): Vali
     if (!board.tiles.some((tile) => tile.id === tileId)) return board;
     return { ...board, tiles: board.tiles.filter((tile) => tile.id !== tileId) };
   });
-  return { ...candidate, boards };
+  const parked = candidate.parked?.filter((tile) => tile.id !== tileId);
+  return { ...candidate, boards, ...(parked ? { parked } : {}) };
 }
