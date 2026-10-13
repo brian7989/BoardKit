@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { boardId, cell, OpType, tileId, widgetId, type BoardsState } from 'boardkit-core';
 import { Board } from '../board/Board.js';
@@ -10,6 +10,7 @@ import type { ChangeMeta } from './ChangeMeta.js';
 import { ChangeReason } from './ChangeReason.js';
 import { defineBoards } from './config/defineBoards.js';
 import { defineWidget } from '../widget/index.js';
+import { useBoards } from './hooks/useBoards.js';
 
 afterEach(cleanup);
 
@@ -173,5 +174,45 @@ describe('breakpoint reflow', () => {
 
     const tile = onChange.mock.calls.at(-1)?.[0].boards[0]?.tiles[0];
     expect(tile).toMatchObject({ col: 1, row: 3 });
+  });
+
+  it('keeps a change made at a narrower breakpoint across a reload', () => {
+    const saved = defineBoards({
+      grid: [
+        { minWidth: 600, cols: 6, rows: 4 },
+        { minWidth: 0, cols: 2, rows: 4 },
+      ],
+      widgets: [widget],
+      initialLayout: [{ widget: 'small' }, { widget: 'small' }],
+    });
+    const KEY = 'narrow-reload-test';
+    window.localStorage.removeItem(KEY);
+    function RemoveSecond() {
+      const { dispatch } = useBoards();
+      return <button onClick={() => dispatch({ type: OpType.Remove, board: boardId('default'), tile: tileId('t-small-2') })}>remove</button>;
+    }
+    const tree = (
+      <BoardProvider config={saved} storageKey={KEY}>
+        <RemoveSecond />
+        <Board />
+      </BoardProvider>
+    );
+    const first = render(tree);
+    resizeTo(NARROW_WIDTH);
+    act(() => screen.getByText('remove').click());
+    act(() => window.dispatchEvent(new Event('pagehide')));
+    first.unmount();
+
+    containerWidth = NARROW_WIDTH;
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    render(
+      <BoardProvider config={saved} storageKey={KEY} onChange={onChange}>
+        <Board />
+      </BoardProvider>,
+    );
+    const stored = saved.breakpoints[1]?.engine.parse(JSON.parse(window.localStorage.getItem(KEY) ?? 'null'));
+    const tiles = stored?.ok ? stored.value.boards.flatMap((board) => board.tiles.map((tile) => tile.id)) : null;
+    expect(tiles).toEqual(['t-small']);
+    expect(onChange).not.toHaveBeenCalled();
   });
 });
