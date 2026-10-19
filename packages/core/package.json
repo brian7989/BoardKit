@@ -1,6 +1,6 @@
 {
   "name": "boardkit-core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The pure, zero-dependency layout engine behind BoardKit: grid model, ops and the collision solver.",
   "license": "MIT",
   "type": "module",
