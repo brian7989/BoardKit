@@ -4,6 +4,7 @@ import { defineWidget } from '../../widget/index.js';
 import { defineBoards } from './defineBoards.js';
 import { createInitialState } from './createInitialState.js';
 import type { BoardsConfig } from './BoardsConfig.js';
+import type { LayoutEntry } from './LayoutEntry.js';
 
 const widget = (type: string, sizes: readonly `${number}x${number}`[]) => defineWidget({ type, title: type, sizes, component: () => null });
 const widgets = [
@@ -15,7 +16,7 @@ const widgets = [
   widget('inspector', ['4x4', '4x3']),
 ];
 
-// The breakpoints guide's example: wall, laptop (hiding two), a derived tablet, and a phone.
+// The breakpoints guide's example: wall, laptop (hiding two), a derived tablet, and a phone that stacks.
 function homeBoards() {
   return defineBoards({
     widgets,
@@ -46,13 +47,12 @@ function homeBoards() {
       tablet: { minWidth: 600, grid: '8x10' },
       phone: {
         minWidth: 0,
-        grid: '4x16',
+        grid: '4x12',
         hide: ['requestors', 'alerts'],
         layout: [
           { widget: 'liveView', size: '4x4', at: [0, 0] },
           { widget: 'inspector', size: '4x4', at: [0, 4] },
-          { widget: 'jobs', size: '4x4', at: [0, 8] },
-          { widget: 'robots', size: '4x4', at: [0, 12] },
+          { widget: 'jobs', size: '4x4', at: [0, 8], stack: [{ widget: 'robots' }] },
         ],
       },
     },
@@ -74,6 +74,11 @@ function positions(state: BoardsState): Record<string, string> {
   const out: Record<string, string> = {};
   for (const board of state.boards) for (const tile of board.tiles) out[tile.id] = `${board.id}:${tile.col},${tile.row} ${tile.size.w}x${tile.size.h}`;
   return out;
+}
+
+// Each shown tile's widget types, sorted.
+function tiles(state: BoardsState): readonly string[] {
+  return state.boards.flatMap((board) => board.tiles.map((tile) => tile.items.map((item) => item.type).join('+'))).sort();
 }
 
 function warnings(spy: ReturnType<typeof vi.spyOn>): readonly string[] {
@@ -100,6 +105,12 @@ describe('named breakpoints', () => {
     const laptop = createInitialState(config, { width: 1200 });
     const backToLaptop = engineOf(config, 'laptop').reflow(engineOf(config, 'phone').reflow(laptop).state).state;
     expect(shown(backToLaptop)).toEqual(['inspector', 'jobs', 'liveView', 'robots']);
+  });
+
+  it('stacks jobs and robots on the phone only', () => {
+    const config = homeBoards();
+    expect(tiles(createInitialState(config, { width: 400 }))).toEqual(['inspector', 'jobs+robots', 'liveView']);
+    expect(tiles(createInitialState(config))).toContain('robots');
   });
 
   it('derives a breakpoint without a layout from the nearest wider one, hidden widgets included', () => {
@@ -134,6 +145,29 @@ describe('named breakpoints', () => {
   });
 });
 
+describe('stacks per breakpoint', () => {
+  const twoLayouts = (wide: readonly LayoutEntry<(typeof widgets)[number]>[], narrow: readonly LayoutEntry<(typeof widgets)[number]>[]) =>
+    defineBoards({ widgets, breakpoints: { wide: { minWidth: 900, grid: '16x8', layout: wide }, narrow: { minWidth: 0, grid: '4x8', layout: narrow } } });
+
+  it('stacks widgets on a breakpoint whose layout stacks them, and keeps them apart where another layout does', () => {
+    const config = twoLayouts([{ widget: 'jobs', size: '4x4' }, { widget: 'robots', size: '4x4' }], [{ widget: 'jobs', size: '4x4', stack: [{ widget: 'robots' }] }]);
+    expect(tiles(createInitialState(config, { width: 400 }))).toEqual(['jobs+robots']);
+    expect(tiles(createInitialState(config))).toEqual(['jobs', 'robots']);
+  });
+
+  it('splits a stack on a breakpoint whose layout lists its widgets apart', () => {
+    const config = twoLayouts([{ widget: 'jobs', size: '4x4', stack: [{ widget: 'robots' }] }], [{ widget: 'jobs', size: '4x4' }, { widget: 'robots', size: '4x4' }]);
+    expect(tiles(createInitialState(config, { width: 400 }))).toEqual(['jobs', 'robots']);
+    expect(tiles(createInitialState(config))).toEqual(['jobs+robots']);
+  });
+
+  it('says nothing when layouts stack differently', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    twoLayouts([{ widget: 'jobs', size: '4x4' }, { widget: 'robots', size: '4x4' }], [{ widget: 'jobs', size: '4x4', stack: [{ widget: 'robots' }] }]);
+    expect(warnings(warn)).toEqual([]);
+  });
+});
+
 describe('layout warnings', () => {
   it('names a widget a layout leaves out without hiding it, and the page it went to', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -151,30 +185,6 @@ describe('layout warnings', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     homeBoards();
     expect(warnings(warn)).toEqual([]);
-  });
-
-  it('warns when a layout stacks widgets the primary layout keeps apart', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    defineBoards({
-      widgets,
-      breakpoints: {
-        wide: { minWidth: 900, grid: '16x8', layout: [{ widget: 'jobs', size: '4x4' }, { widget: 'robots', size: '4x4' }] },
-        thin: { minWidth: 0, grid: '4x8', layout: [{ widget: 'jobs', size: '4x4', stack: [{ widget: 'robots' }] }] },
-      },
-    });
-    expect(warnings(warn)).toContainEqual(expect.stringContaining('the "thin" layout stacks jobs + robots, but "wide" has them on separate tiles'));
-  });
-
-  it('warns when a layout splits a stack the primary layout has', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    defineBoards({
-      widgets,
-      breakpoints: {
-        wide: { minWidth: 900, grid: '16x8', layout: [{ widget: 'jobs', size: '4x4', stack: [{ widget: 'robots' }] }] },
-        split: { minWidth: 0, grid: '4x8', layout: [{ widget: 'jobs', size: '4x4' }, { widget: 'robots', size: '4x4' }] },
-      },
-    });
-    expect(warnings(warn)).toContainEqual(expect.stringContaining('the "split" layout has jobs, robots on separate tiles, but "wide" stacks jobs + robots'));
   });
 
   it('warns when `hide` names only part of a stack', () => {

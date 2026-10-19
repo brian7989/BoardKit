@@ -2,12 +2,12 @@ import { markValid, isFloating, type Board, type BoardsState, type LayoutTile, t
 import { validateState } from '../validate/index.js';
 import type { EngineContext } from '../engine/EngineContext.js';
 import { boardId, type BoardId } from '../shared/ids/BoardId.js';
-import type { TileId } from '../shared/ids/TileId.js';
-import { flattenReadingOrder, type ReflowEntry } from './flattenReadingOrder.js';
+import { flattenReadingOrder } from './flattenReadingOrder.js';
 import { placeFloatingTile } from './placeFloatingTile.js';
 import { placeGridTile } from './placeGridTile.js';
 import { placeAtSavedSpot } from './placeAtSavedSpot.js';
 import { snapshotLayout } from './snapshotLayout.js';
+import { recompose, type Recomposition } from './recompose.js';
 import { gridKey } from './gridKey.js';
 import type { Page } from './Page.js';
 import type { ReflowChange } from './ReflowChange.js';
@@ -28,15 +28,8 @@ function initialPages(state: BoardsState, saved: readonly LayoutTile[] | undefin
   return ids.map((id) => ({ id, tiles: [], isNew: false }));
 }
 
-function savedPositions(saved: readonly LayoutTile[] | undefined): Map<TileId, LayoutTile> {
-  const byTile = new Map<TileId, LayoutTile>();
-  for (const entry of saved ?? []) byTile.set(entry.tile, entry);
-  return byTile;
-}
-
 interface PlaceAllInput {
-  readonly entries: readonly ReflowEntry[];
-  readonly savedByTile: ReadonlyMap<TileId, LayoutTile>;
+  readonly recomposition: Recomposition;
   readonly ctx: EngineContext;
   readonly pages: Page[];
   readonly changes: ReflowChange[];
@@ -46,13 +39,9 @@ interface PlaceAllInput {
 // Saved spots go down first: a tile with no saved spot searches for free space, and placed
 // earlier it could take a spot a restored tile is about to be put back into verbatim.
 function placeAll(input: PlaceAllInput): void {
-  const { entries, savedByTile, ctx, pages, changes, parked } = input;
-  for (const entry of entries) {
-    const at = savedByTile.get(entry.tile.id);
-    if (at) placeAtSavedSpot({ entry, at, ctx, pages, changes, parked });
-  }
-  for (const entry of entries) {
-    if (savedByTile.has(entry.tile.id)) continue;
+  const { recomposition, ctx, pages, changes, parked } = input;
+  for (const { entry, at } of recomposition.saved) placeAtSavedSpot({ entry, at, ctx, pages, changes, parked });
+  for (const entry of recomposition.fresh) {
     const place = isFloating(entry.tile) ? placeFloatingTile : placeGridTile;
     place({ entry, ctx, pages, changes, parked });
   }
@@ -88,13 +77,13 @@ export function reflow(state: BoardsState, ctx: EngineContext): ReflowResult {
 
   const saved = state.layouts[toKey];
   const pages = initialPages(state, saved);
-  const savedByTile = savedPositions(saved);
   const changes: ReflowChange[] = [];
   const parked: Tile[] = [];
   // Previously parked tiles get another chance on every grid, after the tiles already showing.
   const firstPage = pages[0]?.id ?? DEFAULT_PAGE;
   const entries = [...flattenReadingOrder(state.boards), ...state.parked.map((tile) => ({ tile, board: firstPage }))];
-  placeAll({ entries, savedByTile, ctx, pages, changes, parked });
+  const recomposition = saved ? recompose(entries, saved, ctx) : { saved: [], fresh: entries };
+  placeAll({ recomposition, ctx, pages, changes, parked });
 
   return finalize({ state, fromKey, toKey, pages, ctx, changes, parked });
 }

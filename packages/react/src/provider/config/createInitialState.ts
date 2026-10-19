@@ -18,7 +18,7 @@ function initialState(config: BoardsConfig): BoardsState {
   const [primary, ...others] = authored;
   if (!primary) return config.engine.empty();
   let base = primaryState(config, primary, others);
-  for (const breakpoint of others) base = withAuthoredLayout({ config, base, primary }, breakpoint);
+  for (const breakpoint of others) base = withAuthoredLayout({ config, base }, breakpoint);
   for (const target of config.breakpoints) {
     const source = target.layout ? undefined : nearestAuthored(config.breakpoints, target);
     if (source) base = withDerivedLayout({ base, source, target });

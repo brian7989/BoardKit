@@ -9,10 +9,7 @@ import { layoutWidgetIds } from './layoutWidgetIds.js';
 import { onBreakpoint } from './onBreakpoint.js';
 import { warnUnlisted } from './warnUnlisted.js';
 
-/**
- * The widest authored breakpoint's layout, which decides every tile's stack: plus every widget
- * the other layouts list that it doesn't, so all breakpoints share one set of widgets.
- */
+/** The widest authored breakpoint's layout, plus every widget the other layouts list that it doesn't, so all breakpoints share one set of widgets. */
 export function primaryState(config: BoardsConfig, primary: ResolvedBreakpoint, others: readonly ResolvedBreakpoint[]): BoardsState {
   const on = onBreakpoint(config, primary);
   const entries = primary.layout ?? [];

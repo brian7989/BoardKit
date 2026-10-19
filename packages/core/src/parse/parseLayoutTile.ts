@@ -1,4 +1,4 @@
-import { err, ok, boardId, cell, tileId, type Cell, type Result, type Size } from '../shared/index.js';
+import { err, ok, boardId, cell, tileId, widgetId, type Cell, type Result, type Size, type WidgetId } from '../shared/index.js';
 import type { Issue } from '../issues/index.js';
 import { STATE_VERSION, type LayoutTile } from '../model/index.js';
 import { readNumber } from './readers/readNumber.js';
@@ -21,7 +21,7 @@ export function parseLayoutTile(value: unknown, path: string, version: number = 
 
   const float = parseFloatPosition(v['float'], version < STATE_VERSION);
   const hidden = v['hidden'] === true ? { hidden: true as const } : {};
-  return ok({ tile: tileId(tile.value), board: boardId(board.value), ...position.value, ...float, ...hidden });
+  return ok({ tile: tileId(tile.value), board: boardId(board.value), ...position.value, ...float, ...hidden, ...parseComposition(v) });
 }
 
 interface Position {
@@ -38,4 +38,17 @@ function parsePosition(v: Record<string, unknown>, path: string): Result<Positio
   const size = parseSize(v['size'], `${path}.size`);
   if (!size.ok) return err(size.error);
   return ok({ col: cell(col.value), row: cell(row.value), size: size.value });
+}
+
+interface Composition {
+  readonly items?: readonly WidgetId[];
+  readonly active?: number;
+}
+
+// Optional, and dropped rather than rejected when malformed: without it the tile keeps the widgets it already has.
+function parseComposition(v: Record<string, unknown>): Composition {
+  const items = v['items'];
+  if (!Array.isArray(items) || !items.every((item): item is string => typeof item === 'string')) return {};
+  const active = typeof v['active'] === 'number' ? { active: v['active'] } : {};
+  return { items: items.map(widgetId), ...active };
 }

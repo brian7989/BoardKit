@@ -39,13 +39,12 @@ const boards = defineBoards({
     },
     tablet: { minWidth: 600, grid: '8x10' },
     phone: {
-      minWidth: 0, grid: '4x16', cellAspect: 1.5,
+      minWidth: 0, grid: '4x12', cellAspect: 1.5,
       hide: ['requestors', 'alerts'],
       layout: [
         { widget: 'liveView',  size: '4x4', at: [0, 0] },
         { widget: 'inspector', size: '4x4', at: [0, 4] },
-        { widget: 'jobs',      size: '4x4', at: [0, 8] },
-        { widget: 'robots',    size: '4x4', at: [0, 12] },
+        { widget: 'jobs',      size: '4x4', at: [0, 8], stack: [{ widget: 'robots' }] },
       ],
     },
   },
@@ -61,7 +60,9 @@ const boards = defineBoards({
   narrower one's), reflowed onto its grid: `tablet` above always starts from `laptop`, whichever
   breakpoint the board arrives from.
 - Every breakpoint shares the same widgets: a widget listed in two layouts is one widget (matched by
-  type, in order), with one set of props. `useGrid().name` says which breakpoint is active.
+  type, in order), with one set of props. How they're arranged is per breakpoint, stacks included:
+  the phone above stacks `jobs` and `robots` on one tile, while the wall keeps them apart.
+- `useGrid().name` says which breakpoint is active.
 
 ### `hide`
 
@@ -72,19 +73,26 @@ starts from hides. Hiding a stack takes every widget in it.
 
 ### Dev warnings
 
-In development, `defineBoards` warns about layouts that don't do what they look like:
-
-- A widget one layout lists but another neither lists nor hides. It still goes on that breakpoint,
-  at the first free spot, and the warning names the page it landed on.
-- A layout that stacks widgets differently from the widest layout. Stacks are the same on every
-  breakpoint (the widest layout's), so a narrower one can't stack two widgets the wider one keeps
-  apart, or the other way round.
+In development, `defineBoards` warns about a widget one layout lists but another neither lists nor
+hides. It still goes on that breakpoint, at the first free spot, and the warning names the page it
+landed on.
 
 ## Every breakpoint remembers its own layout
 
 Switching breakpoints doesn't just rescale the same arrangement onto a different grid: each
-breakpoint keeps its **own** tile positions, edits included. Go from the wall down to the phone and
+breakpoint keeps its **own** arrangement, edits included. Go from the wall down to the phone and
 back up, and the wall arrangement you left is exactly what comes back.
+
+The rule is: a widget's **content** is shared, and its **arrangement** is per breakpoint.
+
+- **Shared:** the widget itself, its props and its name. Rename a widget on the phone, and it's
+  renamed on the wall. Remove it anywhere, and it's gone everywhere. Add one anywhere, and every
+  breakpoint gets it.
+- **Per breakpoint:** position, size, floating, hidden, which widgets share a tile, and which one a
+  stack shows. Stack two widgets on the phone, and the wall keeps them apart.
+
+A widget stacked onto a tile on one breakpoint joins the tile its stack-mates are on everywhere
+else too (or gets a tile of its own where that tile is a size it doesn't allow).
 
 When tiles no longer fit a breakpoint (a widget's size isn't valid at the new grid, or there's no
 room), BoardKit **reflows**: it repacks them in reading order and spills overflow onto new pages.
