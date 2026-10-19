@@ -21,7 +21,7 @@ function Toggle({ props, setProps }: WidgetProps<{ readonly view: string }>) {
 }
 
 const toggle = defineWidget({ type: 'toggle', title: 'Toggle', sizes: ['1x1'], defaultProps: { view: 'table' }, component: Toggle });
-const config = defineBoards({ grid: { cols: 3, rows: 1 }, widgets: [toggle], initialLayout: [{ widget: 'toggle', at: [1, 0] }] });
+const config = defineBoards({ grid: { cols: 3, rows: 1 }, widgets: [toggle], layout: [{ widget: 'toggle', at: [1, 0] }] });
 
 function loadSaved(): BoardsState {
   return restoreBoards(config, JSON.parse(window.localStorage.getItem(KEY) ?? 'null'));
@@ -87,7 +87,7 @@ describe('WidgetProps.setProps', () => {
 
 describe('setProps on a stack', () => {
   it('updates the widget showing, not the first one in the stack', () => {
-    const single = defineBoards({ grid: { cols: 3, rows: 1 }, widgets: [toggle], initialLayout: [{ widget: 'toggle', props: { view: 'grid' } }] });
+    const single = defineBoards({ grid: { cols: 3, rows: 1 }, widgets: [toggle], layout: [{ widget: 'toggle', props: { view: 'grid' } }] });
     const base = createInitialState(single);
     const added = single.engine.apply(base, { type: OpType.StackNew, board: boardId('default'), onto: tileId('t-toggle'), widget: { id: widgetId('w-second'), type: 'toggle', props: { view: 'table' } } });
     if (!added.ok) throw new Error('fixture StackNew should succeed');

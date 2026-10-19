@@ -20,10 +20,10 @@ const SIZE_SMALL = { w: cell(1), h: cell(1) };
 const widget = defineWidget({ type: 'small', title: 'Small', sizes: [SIZE_SMALL], component: () => null });
 
 const config = defineBoards({
-  grid: [
-    { minWidth: 600, cols: 6, rows: 4 },
-    { minWidth: 0, cols: 2, rows: 4 },
-  ],
+  breakpoints: {
+    wide: { minWidth: 600, grid: '6x4' },
+    narrow: { minWidth: 0, grid: '2x4' },
+  },
   widgets: [widget],
 });
 
@@ -158,12 +158,11 @@ describe('breakpoint reflow', () => {
 
   it('shows a narrower breakpoint its own authored layout when an uncontrolled board first reaches it', () => {
     const authored = defineBoards({
-      grid: [
-        { minWidth: 600, cols: 6, rows: 4 },
-        { minWidth: 0, cols: 2, rows: 4, initialLayout: [{ widget: 'small', at: [1, 3] }] },
-      ],
+      breakpoints: {
+        wide: { minWidth: 600, grid: '6x4', layout: [{ widget: 'small', at: [5, 0] }] },
+        narrow: { minWidth: 0, grid: '2x4', layout: [{ widget: 'small', at: [1, 3] }] },
+      },
       widgets: [widget],
-      initialLayout: [{ widget: 'small', at: [5, 0] }],
     });
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
@@ -180,12 +179,11 @@ describe('breakpoint reflow', () => {
 
   it('keeps a change made at a narrower breakpoint across a reload', () => {
     const saved = defineBoards({
-      grid: [
-        { minWidth: 600, cols: 6, rows: 4 },
-        { minWidth: 0, cols: 2, rows: 4 },
-      ],
+      breakpoints: {
+        wide: { minWidth: 600, grid: '6x4', layout: [{ widget: 'small' }, { widget: 'small' }] },
+        narrow: { minWidth: 0, grid: '2x4' },
+      },
       widgets: [widget],
-      initialLayout: [{ widget: 'small' }, { widget: 'small' }],
     });
     const KEY = 'narrow-reload-test';
     window.localStorage.removeItem(KEY);
@@ -221,12 +219,11 @@ describe('breakpoint reflow', () => {
   it('brings back a widget that fit no size at the narrow breakpoint once the board widens again', () => {
     const wideOnly = defineWidget({ type: 'wideOnly', title: 'Wide only', sizes: ['3x1'], component: () => null });
     const parking = defineBoards({
-      grid: [
-        { minWidth: 600, cols: 6, rows: 4 },
-        { minWidth: 0, cols: 2, rows: 4 },
-      ],
+      breakpoints: {
+        wide: { minWidth: 600, grid: '6x4', layout: [{ widget: 'wideOnly', at: [3, 2] }, { widget: 'small' }] },
+        narrow: { minWidth: 0, grid: '2x4' },
+      },
       widgets: [widget, wideOnly],
-      initialLayout: [{ widget: 'wideOnly', at: [3, 2] }, { widget: 'small' }],
     });
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
@@ -244,12 +241,11 @@ describe('breakpoint reflow', () => {
 
   it('resets to the narrow breakpoint authored layout while at that breakpoint, for a controlled host too', () => {
     const authored = defineBoards({
-      grid: [
-        { minWidth: 600, cols: 6, rows: 4 },
-        { minWidth: 0, cols: 2, rows: 4, initialLayout: [{ widget: 'small', at: [1, 3] }] },
-      ],
+      breakpoints: {
+        wide: { minWidth: 600, grid: '6x4', layout: [{ widget: 'small', at: [5, 0] }] },
+        narrow: { minWidth: 0, grid: '2x4', layout: [{ widget: 'small', at: [1, 3] }] },
+      },
       widgets: [widget],
-      initialLayout: [{ widget: 'small', at: [5, 0] }],
     });
     function ResetButton() {
       const reset = useResetBoards();

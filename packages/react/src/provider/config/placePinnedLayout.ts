@@ -1,5 +1,5 @@
 import { boardId, OpType, type BoardId, type BoardsState } from 'boardkit-core';
-import type { InitialLayoutTile } from './InitialLayoutTile.js';
+import type { LayoutEntry } from './LayoutEntry.js';
 import type { ResolvedEntry } from './resolveEntries.js';
 import type { InitialPlacementCtx } from './InitialPlacementCtx.js';
 import type { ResolvedInitialTile } from './resolveInitialTile.js';
@@ -32,7 +32,7 @@ interface PlacementAttempt {
   readonly ctx: InitialPlacementCtx;
   readonly state: BoardsState;
   readonly board: BoardId;
-  readonly entry: InitialLayoutTile;
+  readonly entry: LayoutEntry;
   readonly resolved: ResolvedInitialTile;
 }
 

@@ -49,7 +49,7 @@ const clock = defineWidget({
   component: ({ props }) => <div>{props.label}</div>,
 });
 
-const boards = defineBoards({ grid: { cols: 6, rows: 4 }, widgets: [clock], initialLayout: [{ widget: 'clock' }] });
+const boards = defineBoards({ widgets: [clock], grid: '6x4', layout: [{ widget: 'clock' }] });
 
 export function App() {
   return (
@@ -60,7 +60,7 @@ export function App() {
 }
 ```
 
-`defineWidget` infers a widget's props from its `component`/`defaultProps` — no generic to write. `sizes` takes `'2x1'`-style shorthand or `{ w, h }` cells. The board above starts from `initialLayout` and then persists and reloads itself under `storageKey`, with no state of your own to wire up.
+`defineWidget` infers a widget's props from its `component`/`defaultProps` — no generic to write. `sizes` takes `'2x1'`-style shorthand or `{ w, h }` cells. The board above starts from its `layout`, checked against `widgets` as you type, and then persists and reloads itself under `storageKey`, with no state of your own to wire up.
 
 ## Guides
 
@@ -68,8 +68,8 @@ export function App() {
 |---|---|
 | [Getting started](docs/getting-started.md) | Installing, your first board, the shape of a widget. |
 | [Widgets](docs/widgets.md) | `defineWidget`, sizes, the fixed design size, `useWidget`, `noDragProps`. |
-| [Boards & state](docs/boards-and-state.md) | Controlled vs. uncontrolled, `initialLayout`, saving (`storageKey`, `restoreBoards`), repair. |
-| [Layout & breakpoints](docs/layout-and-breakpoints.md) | The grid array, per-breakpoint layouts, reflow, `useGrid`. |
+| [Boards & state](docs/boards-and-state.md) | Controlled vs. uncontrolled, `layout`, saving (`storageKey`, `restoreBoards`), repair. |
+| [Layout & breakpoints](docs/layout-and-breakpoints.md) | Named breakpoints, a layout per breakpoint, `hide`, reflow, `useGrid`. |
 | [Chrome](docs/chrome.md) | Your own `tile`, menus, add-widget, page dots, toasts. |
 | [Styling](docs/styling.md) | CSS variables and `data-bk-*` attributes. |
 | [Engine](docs/engine.md) | Using `boardkit-core` standalone, with no React. |

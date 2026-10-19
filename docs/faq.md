@@ -34,7 +34,7 @@ Why doesn't the session itself belong on the board:
 
 - **Per-page visibility** — a board page is meant to be swapped to and from; a live joystick
   session shouldn't vanish because someone flipped to another page.
-- **Persistence** — a widget's props round-trip through `storageKey`/`initialLayout`; a live
+- **Persistence** — a widget's props round-trip through `storageKey` and layouts; a live
   session (open sockets, an active control loop) is not serializable state to reload later.
 - **The solver moves tiles** — reflow (see [Layout & breakpoints](layout-and-breakpoints.md)) can
   relocate or resize any tile to keep a board valid; a control session shouldn't be silently

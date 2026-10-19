@@ -7,7 +7,9 @@ function toLayoutTile(tile: Tile, board: BoardId): LayoutTile {
   return { tile: tile.id, board, col: tile.col, row: tile.row, size: tile.size, ...(tile.float ? { float: tile.float } : {}) };
 }
 
-// A breakpoint's saved layout is just enough to restore it later: page, position, size and float.
-export function snapshotLayout(boards: readonly Board[]): readonly LayoutTile[] {
-  return boards.flatMap((board) => board.tiles.map((tile) => toLayoutTile(tile, board.id)));
+// A breakpoint's saved layout is just enough to restore it later: page, position, size and float,
+// plus which tiles were parked there, so they stay parked when the board comes back to this grid.
+export function snapshotLayout(boards: readonly Board[], parked: readonly Tile[], firstPage: BoardId): readonly LayoutTile[] {
+  const shown = boards.flatMap((board) => board.tiles.map((tile) => toLayoutTile(tile, board.id)));
+  return [...shown, ...parked.map((tile): LayoutTile => ({ ...toLayoutTile(tile, firstPage), hidden: true }))];
 }

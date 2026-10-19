@@ -3,8 +3,7 @@ import { boardId, cell, OpType, tileId, widgetId, type BoardsState, type Engine 
 import { defineWidget } from '../../widget/index.js';
 import { defineBoards } from './defineBoards.js';
 import { createInitialState } from './createInitialState.js';
-import type { InitialLayoutTile } from './InitialLayoutTile.js';
-import type { GridBreakpoint } from './GridBreakpoint.js';
+import type { LayoutEntry } from './LayoutEntry.js';
 
 const widgets = [
   defineWidget({ type: 'liveView', title: 'Live View', sizes: ['8x6', '8x4', '4x4'], component: () => null }),
@@ -31,7 +30,7 @@ const TABLET_SPEC: Spec = [
   ['inspector', '4x3', 4, 7],
 ];
 
-function layoutOf(spec: Spec): readonly InitialLayoutTile[] {
+function layoutOf(spec: Spec): readonly LayoutEntry[] {
   return spec.map(([widget, size, col, row]) => ({ widget, size, at: [col, row] }));
 }
 
@@ -41,13 +40,15 @@ const TABLET = layoutOf(TABLET_SPEC);
 const TABLET_WIDTH = 700;
 const PHONE_WIDTH = 400;
 
-function configWith(tablet?: readonly InitialLayoutTile[]) {
-  const grid: readonly GridBreakpoint[] = [
-    { minWidth: 1000, cols: 12, rows: 6, cellAspect: 0.8 },
-    { minWidth: 600, cols: 8, rows: 10, ...(tablet ? { initialLayout: tablet } : {}) },
-    { minWidth: 0, cols: 4, rows: 8 },
-  ];
-  return defineBoards({ grid, widgets, initialLayout: DESKTOP });
+function configWith(tablet?: readonly LayoutEntry[]) {
+  return defineBoards({
+    widgets,
+    breakpoints: {
+      desktop: { minWidth: 1000, grid: '12x6', cellAspect: 0.8, layout: DESKTOP },
+      tablet: { minWidth: 600, grid: '8x10', ...(tablet ? { layout: tablet } : {}) },
+      phone: { minWidth: 0, grid: '4x8' },
+    },
+  });
 }
 
 const config = configWith(TABLET);
@@ -142,10 +143,12 @@ describe('authored layouts per breakpoint', () => {
     expect(positions(engineAt(TABLET_WIDTH).reflow(reset).state)).toEqual(expected(TABLET_SPEC));
   });
 
-  it('reflows a breakpoint without its own initialLayout exactly as before', () => {
-    const withTablet = engineAt(PHONE_WIDTH).reflow(createInitialState(config)).state;
-    const without = engineAt(PHONE_WIDTH).reflow(createInitialState(configWith())).state;
-    expect(positions(withTablet)).toEqual(positions(without));
+  it('starts a breakpoint without a layout from the nearest wider one, whichever breakpoint the board comes from', () => {
+    const fromDesktop = engineAt(PHONE_WIDTH).reflow(createInitialState(config)).state;
+    const fromTablet = engineAt(PHONE_WIDTH).reflow(createInitialState(config, { width: TABLET_WIDTH })).state;
+    expect(positions(fromDesktop)).toEqual(positions(fromTablet));
+    const viaTablet = engineAt(PHONE_WIDTH).reflow(engineAt(TABLET_WIDTH).reflow(createInitialState(configWith())).state).state;
+    expect(positions(fromDesktop)).not.toEqual(positions(viaTablet));
   });
 
   it('adds a widget only another breakpoint lists to the shared set, at its authored spot there', () => {
@@ -164,13 +167,12 @@ describe('authored layouts per breakpoint', () => {
 
   it('keeps a stack authored on desktop as one tile on tablet, without duplicating its widgets', () => {
     const stacked = defineBoards({
-      grid: [
-        { minWidth: 1000, cols: 12, rows: 6, cellAspect: 0.8 },
-        { minWidth: 600, cols: 8, rows: 10, initialLayout: TABLET },
-        { minWidth: 0, cols: 4, rows: 8 },
-      ],
+      breakpoints: {
+        wide: { minWidth: 1000, grid: '12x6', cellAspect: 0.8, layout: [DESKTOP[0], DESKTOP[1], { widget: 'robots', size: '4x2', at: [8, 2], stack: [{ widget: 'inspector' }] }].filter((entry) => entry !== undefined) },
+        mid: { minWidth: 600, grid: '8x10', layout: TABLET },
+        narrow: { minWidth: 0, grid: '4x8' },
+      },
       widgets,
-      initialLayout: [DESKTOP[0], DESKTOP[1], { widget: 'robots', size: '4x2', at: [8, 2], stack: [{ widget: 'inspector' }] }].filter((entry) => entry !== undefined),
     });
     const tablet = createInitialState(stacked, { width: TABLET_WIDTH });
     const widgetsOnTablet = tablet.boards.flatMap((board) => board.tiles.flatMap((tile) => tile.items.map((item) => item.id)));
@@ -180,7 +182,7 @@ describe('authored layouts per breakpoint', () => {
 });
 
 describe('authored layout edge cases', () => {
-  const single = (initialLayout: readonly InitialLayoutTile[]) => createInitialState(defineBoards({ grid: { cols: 4, rows: 2 }, widgets, initialLayout }));
+  const single = (layout: readonly LayoutEntry[]) => createInitialState(defineBoards({ grid: { cols: 4, rows: 2 }, widgets, layout }));
 
   it('first-fits an entry whose `at` is off the board instead of dropping it', () => {
     expect(Object.keys(positions(single([{ widget: 'robots', size: '4x2', at: [9, 9] }])))).toEqual(['t-robots']);

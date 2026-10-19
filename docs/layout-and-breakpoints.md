@@ -2,61 +2,116 @@
 
 ## One grid, or several
 
-`defineBoards`'s `grid` takes either a single `{ cols, rows }`, or an array of breakpoints, widest
-first isn't required — BoardKit sorts them itself:
+One grid for every screen is `grid` plus `layout`:
+
+```ts
+const boards = defineBoards({ widgets, grid: '12x6', layout: [/* ... */] });
+```
+
+For different screens, name each breakpoint. `<Board>` measures its own container width and
+switches onto the widest breakpoint whose `minWidth` it satisfies: no media queries, no app code
+picking a grid.
 
 ```ts
 const boards = defineBoards({
-  grid: [
-    { minWidth: 900, cols: 6, rows: 4 },
-    { minWidth: 480, cols: 4, rows: 5 },
-    { minWidth: 0, cols: 2, rows: 4 },
-  ],
-  widgets: [clock, weather],
+  widgets: [liveView, jobs, robots, requestors, alerts, inspector],
+  breakpoints: {
+    wall: {
+      minWidth: 1800, grid: '16x8', cellAspect: 1.125,
+      layout: [
+        { widget: 'liveView',   size: '8x6', at: [0, 0] },
+        { widget: 'jobs',       size: '8x2', at: [0, 6] },
+        { widget: 'robots',     size: '4x4', at: [8, 0] },
+        { widget: 'requestors', size: '4x4', at: [8, 4] },
+        { widget: 'alerts',     size: '4x4', at: [12, 0] },
+        { widget: 'inspector',  size: '4x4', at: [12, 4] },
+      ],
+    },
+    laptop: {
+      minWidth: 1000, grid: '12x6', cellAspect: 0.8,
+      hide: ['requestors', 'alerts'],
+      layout: [
+        { widget: 'liveView',  size: '8x4', at: [0, 0] },
+        { widget: 'jobs',      size: '8x2', at: [0, 4] },
+        { widget: 'inspector', size: '4x3', at: [8, 0] },
+        { widget: 'robots',    size: '4x3', at: [8, 3] },
+      ],
+    },
+    tablet: { minWidth: 600, grid: '8x10' },
+    phone: {
+      minWidth: 0, grid: '4x16', cellAspect: 1.5,
+      hide: ['requestors', 'alerts'],
+      layout: [
+        { widget: 'liveView',  size: '4x4', at: [0, 0] },
+        { widget: 'inspector', size: '4x4', at: [0, 4] },
+        { widget: 'jobs',      size: '4x4', at: [0, 8] },
+        { widget: 'robots',    size: '4x4', at: [0, 12] },
+      ],
+    },
+  },
 });
 ```
 
-`<Board>` measures its own container width and switches onto whichever breakpoint's `minWidth` it
-currently satisfies — no app code picks a grid by viewport width, and no media queries are
-involved. Each breakpoint gets its own engine, sized for its own `cols`/`rows`.
+- `grid` is `'cols x rows'` (or `{ cols, rows }`). `cellAspect` is a cell's width ÷ height: 1 (the
+  default) is square, 2 is twice as wide as tall.
+- Each breakpoint's `layout` is authored for its own grid and shows exactly as written the first
+  time the board reaches it. Entries are checked against `widgets` like any layout (see
+  [Boards & state](boards-and-state.md#layout)).
+- A breakpoint without a `layout` starts from the nearest wider breakpoint's (else the nearest
+  narrower one's), reflowed onto its grid: `tablet` above always starts from `laptop`, whichever
+  breakpoint the board arrives from.
+- Every breakpoint shares the same widgets: a widget listed in two layouts is one widget (matched by
+  type, in order), with one set of props. `useGrid().name` says which breakpoint is active.
+
+### `hide`
+
+`hide` leaves widgets off one breakpoint. They aren't deleted: they're parked there and show again
+on any breakpoint that doesn't hide them, so `requestors` and `alerts` above are on the wall and
+nowhere else. A breakpoint without a `layout` can `hide` too, on top of what the breakpoint it
+starts from hides. Hiding a stack takes every widget in it.
+
+### Dev warnings
+
+In development, `defineBoards` warns about layouts that don't do what they look like:
+
+- A widget one layout lists but another neither lists nor hides. It still goes on that breakpoint,
+  at the first free spot, and the warning names the page it landed on.
+- A layout that stacks widgets differently from the widest layout. Stacks are the same on every
+  breakpoint (the widest layout's), so a narrower one can't stack two widgets the wider one keeps
+  apart, or the other way round.
 
 ## Every breakpoint remembers its own layout
 
-Switching breakpoints doesn't just rescale the same arrangement onto a different grid — each
-breakpoint keeps its **own** remembered tile positions. Go from the 6×4 desktop grid down to the
-2×4 phone grid and back up, and the 6×4 arrangement you left is exactly what comes back, not a
-repacked approximation.
+Switching breakpoints doesn't just rescale the same arrangement onto a different grid: each
+breakpoint keeps its **own** tile positions, edits included. Go from the wall down to the phone and
+back up, and the wall arrangement you left is exactly what comes back.
 
-A breakpoint with its own authored `initialLayout` starts from exactly that layout — see
-[A layout per breakpoint](boards-and-state.md#a-layout-per-breakpoint). Otherwise, the first time a
-breakpoint is seen, or when tiles no longer fit it (a widget's size isn't valid
-at the new grid, or there's no room), BoardKit **reflows**: it repacks tiles in reading order and
-spills overflow onto new pages. Either way, the result commits through the normal
-`value`/`onChange` path like any other change, with `meta.reason` set to `'reflow'` — see
-[Boards & state](boards-and-state.md) for `ChangeMeta`.
+When tiles no longer fit a breakpoint (a widget's size isn't valid at the new grid, or there's no
+room), BoardKit **reflows**: it repacks them in reading order and spills overflow onto new pages.
+Either way, the result commits through the normal `value`/`onChange` path like any other change,
+with `meta.reason` set to `'reflow'` — see [Boards & state](boards-and-state.md) for `ChangeMeta`.
 
 A widget with no size that fits a breakpoint's grid at all (a `4x2`-only widget on a 2-column phone
-grid, say) isn't deleted there. It's **parked**: kept in the state's `parked` list, hidden on that
-breakpoint, and put back (at its remembered spot, when it has one) as soon as the board switches to
-a grid it fits. Its reflow change is reported with kind `'dropped'`. Reset clears the parked list
-along with everything else.
+grid, say) is parked there the same way `hide` parks one, and put back (at its remembered spot,
+when it has one) as soon as the board switches to a grid it fits. Its reflow change is reported
+with kind `'dropped'`.
 
 ## `useGrid`
 
-Reads the active breakpoint's resolved grid from inside a provider:
+Reads the active breakpoint's name and grid from inside a provider:
 
 ```tsx
 import { useGrid } from 'boardkit-react';
 
 function TileGap() {
-  const { cols, rows, cellAspect } = useGrid();
-  const gap = cols <= 2 ? '8px' : '12px';
+  const { name } = useGrid();
+  const gap = name === 'phone' ? '8px' : '12px';
   return <div style={{ '--bk-tile-gap': gap } as React.CSSProperties} />;
 }
 ```
 
-Useful for anything that should track the active grid — a tighter gap on the phone breakpoint, a
-label showing the current column count, and so on.
+Useful for anything that should track the active breakpoint: a tighter gap on the phone, a label
+showing the current column count, and so on. A single `grid` is named `'default'`.
 
 ## `--bk-tile-gap`
 
@@ -87,7 +142,7 @@ Non-floating tiles are unaffected either way — the grid's own solver never eve
 
 ### Adding a floating tile
 
-`useWidgetCatalog().add` and `initialLayout` entries both take the same `float` shape:
+`useWidgetCatalog().add` and layout entries both take the same `float` shape:
 
 ```ts
 // Snapped into the Overlay layer at (2, 1), pushing whatever Overlay tile is already there.

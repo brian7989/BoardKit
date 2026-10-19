@@ -71,7 +71,8 @@ interface FinalizeInput {
 function finalize(input: FinalizeInput): ReflowResult {
   const { state, fromKey, toKey, pages, ctx, changes, parked } = input;
   const boards = pages.map(toBoard);
-  const layouts = { ...state.layouts, [fromKey]: snapshotLayout(state.boards), [toKey]: snapshotLayout(boards) };
+  const firstPage = boards[0]?.id ?? DEFAULT_PAGE;
+  const layouts = { ...state.layouts, [fromKey]: snapshotLayout(state.boards, state.parked, state.boards[0]?.id ?? firstPage), [toKey]: snapshotLayout(boards, parked, firstPage) };
   const candidate = { grid: { cols: ctx.grid.cols, rows: ctx.grid.rows }, boards, layouts, parked };
   const issues = validateState(candidate, ctx);
   if (issues.length > 0) throw new Error(`reflow produced an invalid state: ${issues.map((issue) => issue.message).join('; ')}`);

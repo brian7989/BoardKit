@@ -17,7 +17,7 @@ function randomHeatmap(): Record<string, number> {
   return heatmap;
 }
 
-export const habitTrackerWidget = defineWidget<HabitTrackerProps>({
+export const habitTrackerWidget = defineWidget({
   type: 'habittracker',
   title: 'Habit Tracker',
   sizes: ['2x1', '2x2'],

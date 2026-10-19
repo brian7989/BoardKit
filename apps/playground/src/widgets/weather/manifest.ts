@@ -34,7 +34,7 @@ function randomProps(): WeatherProps {
   };
 }
 
-export const weatherWidget = defineWidget<WeatherProps>({
+export const weatherWidget = defineWidget({
   type: 'weather',
   title: 'Weather',
   sizes: ['1x1', '2x1', '2x2'],

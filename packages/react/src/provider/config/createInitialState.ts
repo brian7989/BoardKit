@@ -1,9 +1,10 @@
-import { withSavedLayout, type BoardsState } from 'boardkit-core';
+import type { BoardsState } from 'boardkit-core';
 import type { BoardsConfig } from './BoardsConfig.js';
-import type { ResolvedBreakpoint } from './ResolvedBreakpoint.js';
-import { addMissingTiles } from './addMissingTiles.js';
-import { buildLayout } from './buildLayout.js';
+import { nearestAuthored } from './nearestAuthored.js';
 import { pickBreakpoint } from './pickBreakpoint.js';
+import { primaryState } from './primaryState.js';
+import { withAuthoredLayout } from './withAuthoredLayout.js';
+import { withDerivedLayout } from './withDerivedLayout.js';
 
 /** Options for `createInitialState`. */
 export interface CreateInitialStateOptions {
@@ -11,31 +12,23 @@ export interface CreateInitialStateOptions {
   readonly width?: number;
 }
 
-function onBreakpoint(config: BoardsConfig, breakpoint: ResolvedBreakpoint): BoardsConfig {
-  return { ...config, engine: breakpoint.engine, grid: breakpoint.grid };
-}
-
-// Every other authored layout is stored as that breakpoint's remembered layout, so switching onto
-// it restores it exactly; its widgets the base layout lacks are added to the base first.
-function withAuthoredLayouts(config: BoardsConfig, base: BoardsState): BoardsState {
-  let state = base;
-  for (const breakpoint of config.breakpoints.slice(1)) {
-    if (!breakpoint.initialLayout) continue;
-    const from = onBreakpoint(config, breakpoint);
-    state = addMissingTiles({ config, state, from, entries: breakpoint.initialLayout });
-    state = withSavedLayout(state, buildLayout(from, breakpoint.initialLayout));
+// Every breakpoint gets its layout up front, authored or derived, so each one always starts the same.
+function initialState(config: BoardsConfig): BoardsState {
+  const authored = config.breakpoints.filter((breakpoint) => breakpoint.layout !== undefined);
+  const [primary, ...others] = authored;
+  if (!primary) return config.engine.empty();
+  let base = primaryState(config, primary, others);
+  for (const breakpoint of others) base = withAuthoredLayout({ config, base, primary }, breakpoint);
+  for (const target of config.breakpoints) {
+    const source = target.layout ? undefined : nearestAuthored(config.breakpoints, target);
+    if (source) base = withDerivedLayout({ base, source, target });
   }
-  return state;
+  return base;
 }
 
-/**
- * Builds the state an uncontrolled `BoardProvider` starts from: the widest breakpoint's own
- * `initialLayout` (else the top-level one), plus every other breakpoint's authored layout.
- */
+/** Builds the state an uncontrolled `BoardProvider` starts from, with every breakpoint's layout. */
 export function createInitialState(config: BoardsConfig, options: CreateInitialStateOptions = {}): BoardsState {
-  const widest = config.breakpoints[0];
-  const base = buildLayout(config, widest?.initialLayout ?? config.initialLayout ?? []);
-  const state = withAuthoredLayouts(config, base);
-  if (options.width === undefined) return state;
-  return pickBreakpoint(config.breakpoints, options.width).engine.reflow(state).state;
+  const target = options.width === undefined ? config.breakpoints[0] : pickBreakpoint(config.breakpoints, options.width);
+  const state = initialState(config);
+  return target ? target.engine.reflow(state).state : state;
 }

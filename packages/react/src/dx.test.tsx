@@ -16,7 +16,7 @@ function Clock({ name, props }: WidgetProps<{ label: string }>) {
 
 const clock = defineWidget({ type: 'clock', title: 'Clock', sizes: ['1x1', '2x1'], defaultProps: { label: 'Local' }, component: Clock });
 
-const boards = defineBoards({ grid: { cols: 6, rows: 4 }, widgets: [clock], initialLayout: [{ widget: 'clock', size: '2x1' }] });
+const boards = defineBoards({ grid: { cols: 6, rows: 4 }, widgets: [clock], layout: [{ widget: 'clock', size: '2x1' }] });
 
 export const App = () => (
   <BoardProvider config={boards} storageKey="my-board">

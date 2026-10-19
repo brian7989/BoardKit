@@ -16,7 +16,7 @@ function randomTasks(): Task[] {
   return Array.from({ length: 7 }, (_, index) => ({ id: `task-${index}`, label: faker.hacker.phrase(), done: faker.datatype.boolean({ probability: 0.3 }) }));
 }
 
-export const tasksWidget = defineWidget<TasksProps>({
+export const tasksWidget = defineWidget({
   type: 'tasks',
   title: 'Tasks',
   sizes: ['2x1', '2x2'],

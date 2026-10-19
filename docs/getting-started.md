@@ -27,7 +27,7 @@ const clock = defineWidget({
   component: ({ props }) => <div>{props.label}</div>,
 });
 
-const boards = defineBoards({ grid: { cols: 6, rows: 4 }, widgets: [clock], initialLayout: [{ widget: 'clock' }] });
+const boards = defineBoards({ widgets: [clock], grid: '6x4', layout: [{ widget: 'clock' }] });
 
 export function App() {
   return (
@@ -40,7 +40,9 @@ export function App() {
 
 - `defineBoards` builds the engine and widget catalog once, at module scope — never inside a
   component.
-- `initialLayout` is what an uncontrolled board starts from before anything is saved.
+- `layout` is what an uncontrolled board starts from before anything is saved. For different
+  screens, give named `breakpoints` instead, each with its own grid and layout (see
+  [Layout & breakpoints](layout-and-breakpoints.md)).
 - `storageKey` persists the board to `localStorage` and loads it back (with repair) on mount. See
   [Boards & state](boards-and-state.md).
 - Importing `boardkit-react/styles.css` is optional — it only styles drag/drop feedback via

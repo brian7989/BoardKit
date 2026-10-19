@@ -9,17 +9,17 @@ describe('resolveBreakpoints', () => {
   });
 
   it('defaults cellAspect per breakpoint when not given', () => {
-    const breakpoints = resolveBreakpoints({ grid: [{ minWidth: 0, cols: 2, rows: 2, cellAspect: 1.5 }], widgets: [] });
+    const breakpoints = resolveBreakpoints({ breakpoints: { only: { minWidth: 0, grid: '2x2', cellAspect: 1.5 } }, widgets: [] });
     expect(breakpoints[0]?.grid.cellAspect).toBe(1.5);
   });
 
   it('sorts breakpoints widest first regardless of input order', () => {
     const breakpoints = resolveBreakpoints({
-      grid: [
-        { minWidth: 0, cols: 2, rows: 4 },
-        { minWidth: 900, cols: 6, rows: 4 },
-        { minWidth: 480, cols: 4, rows: 5 },
-      ],
+      breakpoints: {
+        narrow: { minWidth: 0, grid: '2x4' },
+        wide: { minWidth: 900, grid: '6x4' },
+        mid: { minWidth: 480, grid: '4x5' },
+      },
       widgets: [],
     });
     expect(breakpoints.map((bp) => bp.minWidth)).toEqual([900, 480, 0]);
@@ -28,10 +28,10 @@ describe('resolveBreakpoints', () => {
   it('gives every breakpoint its own engine sharing the same catalog', () => {
     const widgets = [{ type: 'w', title: 'W', sizes: [{ w: 1, h: 1 }], component: () => null }];
     const breakpoints = resolveBreakpoints({
-      grid: [
-        { minWidth: 900, cols: 6, rows: 4 },
-        { minWidth: 0, cols: 2, rows: 4 },
-      ],
+      breakpoints: {
+        wide: { minWidth: 900, grid: '6x4' },
+        narrow: { minWidth: 0, grid: '2x4' },
+      },
       widgets,
     });
     expect(breakpoints[0]?.engine).not.toBe(breakpoints[1]?.engine);

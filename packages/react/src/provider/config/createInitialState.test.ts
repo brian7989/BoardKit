@@ -3,13 +3,13 @@ import { isFloating } from 'boardkit-core';
 import { defineWidget } from '../../widget/index.js';
 import { defineBoards } from './defineBoards.js';
 import { createInitialState } from './createInitialState.js';
-import type { InitialLayoutTile } from './InitialLayoutTile.js';
+import type { LayoutEntry } from './LayoutEntry.js';
 
 const small = defineWidget({ type: 'small', title: 'Small', sizes: ['1x1'], component: () => null });
 const big = defineWidget({ type: 'big', title: 'Big', sizes: ['1x1', '2x2'], component: () => null });
 
-function stateFor(initialLayout: readonly InitialLayoutTile[]) {
-  return createInitialState(defineBoards({ grid: { cols: 2, rows: 2 }, widgets: [small, big], initialLayout }));
+function stateFor(layout: readonly LayoutEntry[]) {
+  return createInitialState(defineBoards({ grid: { cols: 2, rows: 2 }, widgets: [small, big], layout }));
 }
 
 describe('createInitialState', () => {
@@ -65,7 +65,7 @@ describe('createInitialState', () => {
   });
 
   it('finds free space on a page when no cell is given, and drops entries once it is full', () => {
-    const entries = Array.from({ length: 5 }, (): InitialLayoutTile => ({ widget: 'small', page: 0 }));
+    const entries = Array.from({ length: 5 }, (): LayoutEntry => ({ widget: 'small', page: 0 }));
     expect(stateFor(entries).boards[1]?.tiles).toHaveLength(4);
   });
 

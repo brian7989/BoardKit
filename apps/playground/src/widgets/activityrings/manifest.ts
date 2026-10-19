@@ -17,7 +17,7 @@ function stat(max: number): RingStat {
   return { value: faker.number.int({ min: max * 0.3, max: max * 1.15 }), goal: max };
 }
 
-export const activityRingsWidget = defineWidget<ActivityRingsProps>({
+export const activityRingsWidget = defineWidget({
   type: 'activityrings',
   title: 'Activity',
   sizes: ['1x1', '2x2'],

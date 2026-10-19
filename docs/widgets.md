@@ -3,29 +3,30 @@
 A widget is a manifest plus a component, declared once with `defineWidget` at module scope:
 
 ```tsx
-import { defineWidget } from 'boardkit-react';
+import { defineWidget, type WidgetProps } from 'boardkit-react';
 
-interface WeatherProps {
-  readonly city: string;
-}
-
-const weather = defineWidget<WeatherProps>({
-  type: 'weather',
-  title: 'Weather',
-  sizes: ['1x1', '2x1', '2x2'],
-  defaultProps: { city: 'Seoul' },
-  component: ({ props, name }) => (
+function Weather({ props, name }: WidgetProps<{ readonly city: string }>) {
+  return (
     <div>
       <strong>{name}</strong>
       <div>{props.city}</div>
     </div>
-  ),
+  );
+}
+
+const weather = defineWidget({
+  type: 'weather',
+  title: 'Weather',
+  sizes: ['1x1', '2x1', '2x2'],
+  defaultProps: { city: 'Seoul' },
+  component: Weather,
 });
 ```
 
-The `P` generic is only needed when TypeScript can't infer it from `component`/`defaultProps`
-alone (as with the object literal above); a component with an inline, typed destructure usually
-needs no generic at all, as in the [quick start](../README.md#quick-start).
+Type the component's props and let `defineWidget` infer the rest, rather than passing
+`defineWidget<Props>`. Inference also captures the widget's `type` and `sizes`, which is what lets
+a layout check `{ widget: 'weather', size: '2x1' }`; with an explicit `<Props>`, layouts accept any
+name and size for that widget.
 
 ## Sizes
 
@@ -122,6 +123,6 @@ of the widget should stay draggable.
 
 ## Next
 
-- [Boards & state](boards-and-state.md) — placing widgets via `initialLayout`, persistence.
+- [Boards & state](boards-and-state.md) — placing widgets via `layout`, persistence.
 - [Chrome](chrome.md) — your own `tile`, menus, and an add-widget gallery.
 - [API reference](api.md).

@@ -6,7 +6,7 @@ it yourself (controlled), the same way as an `<input>`.
 
 ## Uncontrolled
 
-Give `BoardProvider` a `storageKey` and/or `config.initialLayout` and it manages its own state:
+Give `BoardProvider` a `storageKey` and/or a config with a `layout` and it manages its own state:
 
 ```tsx
 <BoardProvider config={boards} storageKey="my-board">
@@ -14,8 +14,8 @@ Give `BoardProvider` a `storageKey` and/or `config.initialLayout` and it manages
 </BoardProvider>
 ```
 
-With no `storageKey` (or nothing saved under it yet), the board starts from `initialLayout`, or
-empty if there is none.
+With no `storageKey` (or nothing saved under it yet), the board starts from its layouts, or
+empty if there are none.
 
 ## Controlled
 
@@ -41,15 +41,17 @@ action, `{ reason: 'reset' }` after `useResetBoards`, or `{ reason: 'reflow', ch
 [Layout & breakpoints](layout-and-breakpoints.md)) — useful for deciding what's worth persisting
 or announcing. To save a controlled board and load it back, see [Saving boards](#saving-boards).
 
-## `initialLayout`
+## `layout`
 
-`defineBoards({ ..., initialLayout })` lists the widgets an uncontrolled board starts with:
+`defineBoards({ ..., layout })` lists the widgets an uncontrolled board starts with (with
+breakpoints, each breakpoint has its own `layout`; see
+[Layout & breakpoints](layout-and-breakpoints.md)):
 
 ```ts
 const boards = defineBoards({
-  grid: { cols: 6, rows: 4 },
-  widgets: [clock, weather],
-  initialLayout: [
+  widgets: [clock, weather, countdown, stocks, crypto],
+  grid: '6x4',
+  layout: [
     { widget: 'clock' },
     { widget: 'weather', size: '2x1', props: { city: 'Tokyo' } },
     { widget: 'clock', page: 1, at: [0, 0], name: 'Backup clock' },
@@ -60,25 +62,26 @@ const boards = defineBoards({
 });
 ```
 
+- `widget`, `size` and `props` are type-checked against `widgets`: a typo in a widget's name, a
+  size it doesn't list, or a prop of the wrong type is an editor error. (A `{ w, h }` size isn't
+  checked per widget, which is handy for layouts you compute.)
 - Give `at` (`[col, row]` or `{ x, y }`) to place a tile at an exact cell on the first page. Entries
   with `at` are placed first; if an authored cell clashes with an earlier one, that entry falls back
   to first-fit instead of pushing the earlier one aside.
 - Omit `at`/`page` for first-fit placement — BoardKit packs tiles in reading order around the
   pinned ones and spills overflow onto new pages automatically.
 - Give `page` to pin a tile onto a specific extra page instead (0-indexed after however many pages
-  the default-placed entries used), optionally with `at` (`[col, row]` or `{ x, y }`) for an exact
-  cell.
+  the default-placed entries used), optionally with `at` for an exact cell.
 - Give `float` to start the tile already floating above the grid instead of on it: snapped into
   the Overlay layer at an integer `{ x, y }` by default, or unsnapped and collision-free with
   `free: true` and a fractional position. See [Floating tiles](layout-and-breakpoints.md#floating-tiles).
 - Give `stack` to start the tile as a stack: the entry's own widget shows first, and the `stack`
   widgets (each with optional `props` and `name`) sit under it on the same tile. Every widget in a
   stack must allow the tile's size; without a `size`, the stack takes the largest one they all
-  allow. Stacks are shared across breakpoints like any other widget: author a stack in one
-  breakpoint's layout, and another layout can still position it by listing its first widget.
+  allow.
 - `size`, `props` and `name` default to the widget's first size, `defaultProps`, and `title`.
 
-`createInitialState(config)` builds the same `BoardsState` `initialLayout` produces, without a
+`createInitialState(config)` builds the same `BoardsState` the layouts produce, without a
 provider — useful for a controlled board's initial `useState`, or a test fixture. Pass
 `{ width }` to start on that width's breakpoint instead of the widest:
 
@@ -88,40 +91,6 @@ import { createInitialState } from 'boardkit-react';
 const initial = createInitialState(boards);
 const tablet = createInitialState(boards, { width: 700 });
 ```
-
-### A layout per breakpoint
-
-A breakpoint can carry its own `initialLayout`, authored for its own grid, instead of getting the
-widest one reflowed onto it:
-
-```ts
-const boards = defineBoards({
-  grid: [
-    { minWidth: 1000, cols: 12, rows: 6 },
-    {
-      minWidth: 600, cols: 8, rows: 10,
-      initialLayout: [
-        { widget: 'liveView', size: '8x4', at: [0, 0] },
-        { widget: 'jobs', size: '8x3', at: [0, 4] },
-        { widget: 'robots', size: '4x3', at: [0, 7] },
-        { widget: 'inspector', size: '4x3', at: [4, 7] },
-      ],
-    },
-    { minWidth: 0, cols: 4, rows: 8 },
-  ],
-  widgets: [liveView, jobs, robots, inspector],
-  initialLayout: [/* the 12×6 desktop layout */],
-});
-```
-
-- The widest breakpoint uses its own `initialLayout` if it has one, else the top-level one.
-- A breakpoint with an authored layout shows exactly that layout the first time it's reached. One
-  without reflows from whichever breakpoint it switched from, as before.
-- Every breakpoint shares the same widget instances: the same widget type listed in two layouts is
-  one widget (matched by type, in order), with one set of props. A widget only one layout lists is
-  still on every breakpoint, first-fit where it isn't authored.
-- After that, each breakpoint remembers its own edits — see
-  [Layout & breakpoints](layout-and-breakpoints.md#every-breakpoint-remembers-its-own-layout).
 
 ### Resetting
 
@@ -195,7 +164,7 @@ Loading never trusts what's there blindly: BoardKit parses it and **repairs** an
 longer validates. An out-of-bounds tile is relocated onto free space instead of failing outright,
 and a tile referencing a widget type that's no longer registered is dropped, with a dev-only
 console warning either way. A completely unparsable value (corrupted JSON, wrong shape) falls back
-to `initialLayout` or empty, never a thrown error.
+to the layouts or empty, never a thrown error.
 
 ## `engine.parse` / `engine.repair`
 

@@ -6,7 +6,7 @@ import { useLatestStateRef } from './useLatestStateRef.js';
 export interface UseControllableBoardsStateInput {
   readonly value?: BoardsState;
   readonly defaultValue?: BoardsState;
-  // Lazily computed (persisted save, else the config's initialLayout) only when truly needed.
+  // Lazily computed (persisted save, else the config's layouts) only when truly needed.
   readonly initial: () => BoardsState;
   readonly onChange?: (next: BoardsState, meta: ChangeMeta) => void;
 }

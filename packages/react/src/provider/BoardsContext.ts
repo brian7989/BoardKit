@@ -7,7 +7,7 @@ export interface BoardsContextValue {
   readonly state: BoardsState;
   readonly activeBoardId: BoardId;
   readonly engine: Engine;
-  readonly grid: { readonly cols: number; readonly rows: number; readonly cellAspect: number };
+  readonly grid: { readonly name: string; readonly cols: number; readonly rows: number; readonly cellAspect: number };
   readonly widgets: ReadonlyMap<string, WidgetManifest>;
   readonly createId: () => string;
   readonly locked: boolean;

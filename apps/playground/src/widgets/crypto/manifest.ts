@@ -28,7 +28,7 @@ function randomProps(): CryptoProps {
   };
 }
 
-export const cryptoWidget = defineWidget<CryptoProps>({
+export const cryptoWidget = defineWidget({
   type: 'crypto',
   title: 'Crypto',
   sizes: ['1x1', '2x1'],

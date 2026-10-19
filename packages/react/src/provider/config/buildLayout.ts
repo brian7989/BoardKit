@@ -1,13 +1,13 @@
 import type { BoardsState } from 'boardkit-core';
 import type { BoardsConfig } from './BoardsConfig.js';
-import type { InitialLayoutTile } from './InitialLayoutTile.js';
+import type { LayoutEntry } from './LayoutEntry.js';
 import type { InitialPlacementCtx } from './InitialPlacementCtx.js';
 import { resolveEntries } from './resolveEntries.js';
 import { placeAutoLayout } from './placeAutoLayout.js';
 import { placePinnedLayout } from './placePinnedLayout.js';
 
 /** Places one layout's entries on `config`'s engine: default-page entries first, then explicit `page`s after them. */
-export function buildLayout(config: BoardsConfig, entries: readonly InitialLayoutTile[]): BoardsState {
+export function buildLayout(config: BoardsConfig, entries: readonly LayoutEntry[]): BoardsState {
   const ctx: InitialPlacementCtx = { config, counts: new Map() };
   const resolved = resolveEntries(ctx, entries);
   const auto = resolved.filter((item) => item.entry.page === undefined);

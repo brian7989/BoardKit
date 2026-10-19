@@ -7,7 +7,7 @@ export interface PhotoProps extends Record<string, unknown> {
   readonly caption: string;
 }
 
-export const photoWidget = defineWidget<PhotoProps>({
+export const photoWidget = defineWidget({
   type: 'photo',
   title: 'Photo',
   sizes: ['1x1', '2x2', '6x4'],

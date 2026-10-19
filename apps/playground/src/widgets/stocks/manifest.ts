@@ -27,7 +27,7 @@ function randomTicker(symbol: string): Ticker {
   return { symbol, price, changePct, history };
 }
 
-export const stocksWidget = defineWidget<StocksProps>({
+export const stocksWidget = defineWidget({
   type: 'stocks',
   title: 'Stocks',
   sizes: ['1x1', '2x1', '2x2'],

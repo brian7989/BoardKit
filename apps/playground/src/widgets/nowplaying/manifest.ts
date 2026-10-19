@@ -10,7 +10,7 @@ export interface NowPlayingProps extends Record<string, unknown> {
   readonly durationSec: number;
 }
 
-export const nowPlayingWidget = defineWidget<NowPlayingProps>({
+export const nowPlayingWidget = defineWidget({
   type: 'nowplaying',
   title: 'Now Playing',
   sizes: ['1x1', '2x1'],

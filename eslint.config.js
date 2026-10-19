@@ -87,7 +87,7 @@ export default [
     },
   },
   {
-    files: ['**/*.test.ts', '**/*.test.tsx'],
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/type-tests/**/*.ts'],
     rules: {
       'max-lines-per-function': 'off',
       'max-lines': 'off',

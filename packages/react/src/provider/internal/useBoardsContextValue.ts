@@ -7,7 +7,7 @@ export interface UseBoardsContextValueInput {
   readonly props: BoardProviderProps;
   readonly state: BoardsState;
   readonly engine: Engine;
-  readonly grid: { readonly cols: number; readonly rows: number; readonly cellAspect: number };
+  readonly grid: { readonly name: string; readonly cols: number; readonly rows: number; readonly cellAspect: number };
   readonly activeBoardId: BoardId;
   readonly setActiveBoard: BoardsContextValue['setActiveBoard'];
   readonly locked: boolean;

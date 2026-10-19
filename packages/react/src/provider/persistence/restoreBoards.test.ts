@@ -7,12 +7,11 @@ import { restoreBoards } from './restoreBoards.js';
 
 const a = defineWidget({ type: 'a', title: 'A', sizes: ['1x1'], component: () => null });
 const config = defineBoards({
-  grid: [
-    { minWidth: 800, cols: 4, rows: 2 },
-    { minWidth: 0, cols: 2, rows: 2 },
-  ],
+  breakpoints: {
+    wide: { minWidth: 800, grid: '4x2', layout: [{ widget: 'a' }] },
+    narrow: { minWidth: 0, grid: '2x2' },
+  },
   widgets: [a],
-  initialLayout: [{ widget: 'a' }],
 });
 const NARROW_WIDTH = 400;
 

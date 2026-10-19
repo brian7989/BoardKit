@@ -1,10 +1,12 @@
 import type { Engine } from 'boardkit-core';
-import type { InitialLayoutTile } from './InitialLayoutTile.js';
+import type { LayoutEntry } from './LayoutEntry.js';
 
-/** A `GridBreakpoint` with its own engine already built, ready for the provider to switch onto. */
+/** A breakpoint with its own engine already built, ready for the provider to switch onto. */
 export interface ResolvedBreakpoint {
+  readonly name: string;
   readonly minWidth: number;
-  readonly grid: { readonly cols: number; readonly rows: number; readonly cellAspect: number };
+  readonly grid: { readonly name: string; readonly cols: number; readonly rows: number; readonly cellAspect: number };
   readonly engine: Engine;
-  readonly initialLayout?: readonly InitialLayoutTile[];
+  readonly layout?: readonly LayoutEntry[];
+  readonly hide: readonly string[];
 }

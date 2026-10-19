@@ -1,7 +1,7 @@
 import type { Size, WidgetInstance } from 'boardkit-core';
 import { isSizeAllowed } from 'boardkit-core';
 import type { WidgetManifest } from '../../widget/index.js';
-import type { InitialLayoutTile } from './InitialLayoutTile.js';
+import type { LayoutEntry } from './LayoutEntry.js';
 import type { InitialPlacementCtx } from './InitialPlacementCtx.js';
 import { heroSize } from './heroSize.js';
 import { parseSizeInput } from '../../shared/size/parseSizeInput.js';
@@ -25,7 +25,7 @@ interface StackedWidget {
 }
 
 // Unregistered stack widgets are skipped, like unregistered entries.
-function resolveStack(ctx: InitialPlacementCtx, entry: InitialLayoutTile): readonly StackedWidget[] {
+function resolveStack(ctx: InitialPlacementCtx, entry: LayoutEntry): readonly StackedWidget[] {
   const out: StackedWidget[] = [];
   for (const item of entry.stack ?? []) {
     const manifest = ctx.config.widgets.get(item.widget);
@@ -42,17 +42,17 @@ function defaultSize(ctx: InitialPlacementCtx, manifest: WidgetManifest, stacked
 }
 
 // An authored size the widget (or its stack) doesn't allow would otherwise drop the entry without a trace.
-function authoredSize(ctx: InitialPlacementCtx, entry: InitialLayoutTile, fallback: () => Size): Size {
+function authoredSize(ctx: InitialPlacementCtx, entry: LayoutEntry, fallback: () => Size): Size {
   if (!entry.size) return fallback();
   const size = parseSizeInput(entry.size);
   const manifests = [ctx.config.widgets.get(entry.widget), ...(entry.stack ?? []).map((item) => ctx.config.widgets.get(item.widget))];
   if (manifests.every((manifest) => !manifest || isSizeAllowed(size, manifest.sizes))) return size;
-  warnOnce(`initial-size:${entry.widget}:${size.w}x${size.h}`, `Boards: initialLayout gives "${entry.widget}" a ${size.w}x${size.h} size it doesn't allow; using its default size.`);
+  warnOnce(`initial-size:${entry.widget}:${size.w}x${size.h}`, `Boards: a layout gives "${entry.widget}" a ${size.w}x${size.h} size it doesn't allow; using its default size.`);
   return fallback();
 }
 
 /** Resolves one layout entry's manifest, size, ids and widget instances, or null if unregistered. */
-export function resolveInitialTile(ctx: InitialPlacementCtx, entry: InitialLayoutTile): ResolvedInitialTile | null {
+export function resolveInitialTile(ctx: InitialPlacementCtx, entry: LayoutEntry): ResolvedInitialTile | null {
   const manifest = ctx.config.widgets.get(entry.widget);
   if (!manifest) return null;
   const ids = nextInitialId(ctx.counts, entry.widget);

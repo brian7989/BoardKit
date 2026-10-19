@@ -48,7 +48,7 @@
   },
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json && cp src/styles.css dist/styles.css && node scripts/addUseClient.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.type-tests.json",
     "test": "vitest run --root ../.. packages/react"
   },
   "devDependencies": {

@@ -12,4 +12,6 @@ export interface LayoutTile {
   readonly row: Cell;
   readonly size: Size;
   readonly float?: { readonly x: number; readonly y: number };
+  // Parked on this grid: kept off the board here, while still showing on others.
+  readonly hidden?: true;
 }

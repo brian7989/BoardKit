@@ -25,7 +25,7 @@ function randomService(): Service {
   return { name: faker.hacker.noun() + '-svc', status, latencyMs: faker.number.int({ min: 8, max: 420 }) };
 }
 
-export const serverStatusWidget = defineWidget<ServerStatusProps>({
+export const serverStatusWidget = defineWidget({
   type: 'serverstatus',
   title: 'Server Status',
   sizes: ['2x1', '2x2', '4x2'],

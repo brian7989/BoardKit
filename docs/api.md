@@ -15,16 +15,16 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | `CreateInitialStateOptions` (type) | `createInitialState`'s options: `width`. |
 | `restoreBoards` | Turns a board you saved yourself back into a valid state (migrated, repaired, on its own breakpoint), else `createInitialState`. |
 | `useResetBoards` | Returns a function that resets the board to its authored layouts on every breakpoint. |
-| `GridBreakpoint` (type) | One entry of a responsive grid: `minWidth`, `cols`, `rows`, optional `cellAspect`, optional `initialLayout`. |
-| `ResolvedBreakpoint` (type) | A `GridBreakpoint` with its own engine already built. |
-| `InitialLayoutTile` (type) | One widget an uncontrolled board starts with — see `defineBoards`'s `initialLayout`. |
-| `InitialStackItem` (type) | A widget stacked under an `InitialLayoutTile`'s own, via its `stack`. |
+| `BreakpointInput` (type) | One named breakpoint: `minWidth`, `grid`, optional `cellAspect`, `layout` and `hide`. |
+| `GridInput` (type) | A grid's size: `'12x6'` or `{ cols, rows }`. |
+| `ResolvedBreakpoint` (type) | A breakpoint with its name and its own engine already built. |
+| `LayoutEntry` / `LayoutStackEntry` (types) | One widget a layout starts with, and a widget stacked under it. `LayoutEntry<(typeof widgets)[number]>` types an array you build yourself. |
 | `ChangeMeta` (type) | `onChange`'s second argument: why the state changed (`'op'`, `'reflow'` or `'reset'`). |
 | `ChangeReason` | The `ChangeMeta` reasons: `'op'`, `'reflow'` and `'reset'`. |
 | `BoardsContextValue` (type) | The raw context value `useBoards` returns. |
 | `useBoards` | Escape hatch: raw state, dispatch, active board, and the engine. |
 | `useLocked` | Whether the board is currently read-only. |
-| `useGrid` | The active breakpoint's `{ cols, rows, cellAspect }`. |
+| `useGrid` | The active breakpoint's `{ name, cols, rows, cellAspect }`. |
 | `useBoardList` | Lists board pages, and switches/adds/removes them (`add` switches to the new board). |
 | `BoardList` / `BoardListItem` (types) | `useBoardList`'s return shape, and one board page in it. |
 | `useWidgetCatalog` | Lists registered widgets, and adds one to the active board. |
@@ -59,8 +59,9 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 
 | Export | What it is |
 |---|---|
-| `defineWidget` | Declares a widget's manifest — type, title, sizes, component, and options. |
+| `defineWidget` | Declares a widget's manifest — type, title, sizes, component, and options. Infers its props, type name and sizes, so layouts are checked against them. |
 | `WidgetManifest` (type) | A widget's registration, as `defineWidget` builds it. |
+| `AnyWidget` (type) | Any widget, whatever its props: the type of a list of different widgets. |
 | `useWidget` | Reads the current widget's props/size/name/`designSize` from inside its own component tree. |
 | `WidgetProps` (type) | What a widget component (and `useWidget`) receives. |
 
@@ -69,6 +70,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | Export | What it is |
 |---|---|
 | `SizeInput` (type) | A `Size`, or a `'2x1'`-style string shorthand — accepted anywhere a size is. |
+| `SizeKey` (type) | The `'2x1'`-style shorthand on its own. |
 | `AtInput` (type) | A `[col, row]` tuple or `{ x, y }` point, in plain grid cells. |
 | `noDragProps` | Spread onto a control to stop its own pointer gesture from also dragging the tile. |
 

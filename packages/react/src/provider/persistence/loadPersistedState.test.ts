@@ -44,11 +44,11 @@ describe('loadPersistedState', () => {
 
   describe('with breakpoints', () => {
     const responsive = defineBoards({
-      grid: [
-        { minWidth: 1600, cols: 16, rows: 8 },
-        { minWidth: 1000, cols: 12, rows: 6 },
-        { minWidth: 0, cols: 4, rows: 8 },
-      ],
+      breakpoints: {
+        wide: { minWidth: 1600, grid: '16x8' },
+        mid: { minWidth: 1000, grid: '12x6' },
+        narrow: { minWidth: 0, grid: '4x8' },
+      },
       widgets: [widget],
     });
     const laptop = responsive.breakpoints[1]?.engine;

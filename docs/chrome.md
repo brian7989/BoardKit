@@ -126,7 +126,7 @@ function AddWidgetMenu() {
 ```
 
 `add(type, options?)` places a new tile at the widget's default (or given) size/position;
-`options.at` or `options.float` pin it exactly, the same shapes as `initialLayout`'s.
+`options.at` or `options.float` pin it exactly, the same shapes as a layout entry's.
 
 Pair this with `<Board emptyState={<AddWidgetMenu />}>` so an empty board offers it directly
 instead of showing the default "No widgets on this page yet." message.

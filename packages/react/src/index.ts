@@ -7,10 +7,11 @@ export type {
   ChangeMeta,
   DefineBoardsInput,
   CreateInitialStateOptions,
-  GridBreakpoint,
+  BreakpointInput,
+  GridInput,
   ResolvedBreakpoint,
-  InitialLayoutTile,
-  InitialStackItem,
+  LayoutEntry,
+  LayoutStackEntry,
   BoardList,
   BoardListItem,
   WidgetCatalog,
@@ -48,10 +49,11 @@ export type {
 
 // Widget: how a host defines the widgets a board can place.
 export { defineWidget, useWidget } from './widget/index.js';
-export type { WidgetManifest, WidgetProps } from './widget/index.js';
+export type { WidgetManifest, AnyWidget, WidgetProps } from './widget/index.js';
 
 // Shared: the size shorthand accepted anywhere a size is, and a drag-safe DOM prop.
 export type { SizeInput } from './shared/size/SizeInput.js';
+export type { SizeKey } from './shared/size/SizeKey.js';
 export type { AtInput } from './provider/config/AtInput.js';
 export { noDragProps } from './shared/index.js';
 

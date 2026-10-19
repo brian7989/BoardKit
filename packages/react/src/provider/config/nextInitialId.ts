@@ -11,3 +11,8 @@ export function nextInitialId(counts: Map<string, number>, type: string): Initia
   const suffix = count > 1 ? `-${count}` : '';
   return { tile: `t-${type}${suffix}`, widget: `w-${type}${suffix}` };
 }
+
+/** The tile id `nextInitialId` pairs with a widget id, for a widget that ends up on a tile of its own. */
+export function tileIdForWidget(widget: string): string {
+  return `t${widget.slice(1)}`;
+}

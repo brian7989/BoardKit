@@ -15,7 +15,7 @@ export function categoryOf(aqi: number): { readonly label: string; readonly colo
   return { label: 'Unhealthy', color: 'red' };
 }
 
-export const airQualityWidget = defineWidget<AirQualityProps>({
+export const airQualityWidget = defineWidget({
   type: 'airquality',
   title: 'Air Quality',
   sizes: ['1x1', '2x1'],

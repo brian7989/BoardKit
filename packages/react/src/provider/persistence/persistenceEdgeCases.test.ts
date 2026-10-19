@@ -8,13 +8,12 @@ import { restoreBoards } from './restoreBoards.js';
 
 const w = (type: string, sizes: readonly `${number}x${number}`[]) => defineWidget({ type, title: type, sizes, component: () => null });
 const config = defineBoards({
-  grid: [
-    { minWidth: 1000, cols: 6, rows: 4 },
-    { minWidth: 600, cols: 4, rows: 4, initialLayout: [{ widget: 'a', size: '2x2', at: [2, 2] }, { widget: 'b', size: '2x2', at: [0, 0] }] },
-    { minWidth: 0, cols: 2, rows: 4 },
-  ],
+  breakpoints: {
+    wide: { minWidth: 1000, grid: '6x4', layout: [{ widget: 'a', size: '2x2' }, { widget: 'b', size: '2x2' }, { widget: 'c', size: '1x1' }, { widget: 'wide' }] },
+    mid: { minWidth: 600, grid: '4x4', layout: [{ widget: 'a', size: '2x2', at: [2, 2] }, { widget: 'b', size: '2x2', at: [0, 0] }] },
+    narrow: { minWidth: 0, grid: '2x4' },
+  },
   widgets: [w('a', ['2x2', '1x1']), w('b', ['2x2', '1x1']), w('c', ['2x2', '1x1']), w('wide', ['3x1'])],
-  initialLayout: [{ widget: 'a', size: '2x2' }, { widget: 'b', size: '2x2' }, { widget: 'c', size: '1x1' }, { widget: 'wide' }],
 });
 const engines = config.breakpoints.map((breakpoint) => breakpoint.engine);
 const WIDE = engines[0];

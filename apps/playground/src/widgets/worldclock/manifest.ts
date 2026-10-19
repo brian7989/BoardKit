@@ -10,7 +10,7 @@ export interface WorldClockProps extends Record<string, unknown> {
   readonly cities: readonly City[];
 }
 
-export const worldClockWidget = defineWidget<WorldClockProps>({
+export const worldClockWidget = defineWidget({
   type: 'worldclock',
   title: 'World Clock',
   sizes: ['1x1', '2x1', '2x2'],

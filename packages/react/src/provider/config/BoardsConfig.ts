@@ -1,9 +1,8 @@
 import type { Engine } from 'boardkit-core';
 import type { WidgetManifest } from '../../widget/index.js';
-import type { InitialLayoutTile } from './InitialLayoutTile.js';
 import type { ResolvedBreakpoint } from './ResolvedBreakpoint.js';
 
-/** Everything `defineBoards` resolves for `BoardProvider`: engines, widgets, and seed/id settings. */
+/** Everything `defineBoards` resolves for `BoardProvider`: engines, widgets, and id settings. */
 export interface BoardsConfig {
   // Widest first; there is always at least one. `<Board>`'s measured width picks which is active.
   readonly breakpoints: readonly ResolvedBreakpoint[];
@@ -15,6 +14,4 @@ export interface BoardsConfig {
   readonly createId: () => string;
   /** A widget's fixed design canvas, in design px per cell — see `defineBoards`'s `designCellSize`. */
   readonly designCellSize: number;
-  /** The widgets an uncontrolled `BoardProvider` seeds itself with — see `defineBoards`'s `initialLayout`. */
-  readonly initialLayout?: readonly InitialLayoutTile[];
 }

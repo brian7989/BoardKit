@@ -8,7 +8,7 @@ export interface NotesProps extends Record<string, unknown> {
   readonly editedAt: string;
 }
 
-export const notesWidget = defineWidget<NotesProps>({
+export const notesWidget = defineWidget({
   type: 'notes',
   title: 'Notes',
   sizes: ['2x1', '2x2'],

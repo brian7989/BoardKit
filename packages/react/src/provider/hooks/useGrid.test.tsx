@@ -10,7 +10,7 @@ const config = defineBoards({ grid: { cols: 3, rows: 5 }, widgets: [] });
 
 function GridLabel() {
   const grid = useGrid();
-  return <span>{`${grid.cols}x${grid.rows}`}</span>;
+  return <span>{`${grid.name} ${grid.cols}x${grid.rows}`}</span>;
 }
 
 describe('useGrid', () => {
@@ -20,6 +20,16 @@ describe('useGrid', () => {
         <GridLabel />
       </BoardProvider>,
     );
-    expect(screen.getByText('3x5')).toBeInTheDocument();
+    expect(screen.getByText('default 3x5')).toBeInTheDocument();
+  });
+
+  it('names the active breakpoint', () => {
+    const named = defineBoards({ breakpoints: { desktop: { minWidth: 0, grid: '4x2' } }, widgets: [] });
+    render(
+      <BoardProvider config={named} defaultValue={named.engine.empty()}>
+        <GridLabel />
+      </BoardProvider>,
+    );
+    expect(screen.getByText('desktop 4x2')).toBeInTheDocument();
   });
 });

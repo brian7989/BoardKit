@@ -22,7 +22,7 @@ function randomEvents(): CalendarEvent[] {
   })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export const calendarWidget = defineWidget<CalendarProps>({
+export const calendarWidget = defineWidget({
   type: 'calendar',
   title: 'Calendar',
   sizes: ['1x1', '1x2', '2x2'],

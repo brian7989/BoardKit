@@ -8,7 +8,7 @@ export interface CountdownProps extends Record<string, unknown> {
   readonly target: string;
 }
 
-export const countdownWidget = defineWidget<CountdownProps>({
+export const countdownWidget = defineWidget({
   type: 'countdown',
   title: 'Countdown',
   sizes: ['1x1', '2x1'],

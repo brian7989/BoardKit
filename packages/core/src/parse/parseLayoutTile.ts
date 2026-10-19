@@ -20,7 +20,8 @@ export function parseLayoutTile(value: unknown, path: string, version: number = 
   if (!position.ok) return err(position.error);
 
   const float = parseFloatPosition(v['float'], version < STATE_VERSION);
-  return ok({ tile: tileId(tile.value), board: boardId(board.value), ...position.value, ...float });
+  const hidden = v['hidden'] === true ? { hidden: true as const } : {};
+  return ok({ tile: tileId(tile.value), board: boardId(board.value), ...position.value, ...float, ...hidden });
 }
 
 interface Position {

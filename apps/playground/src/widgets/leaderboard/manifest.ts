@@ -22,7 +22,7 @@ function randomEntry(): LeaderboardEntry {
   };
 }
 
-export const leaderboardWidget = defineWidget<LeaderboardProps>({
+export const leaderboardWidget = defineWidget({
   type: 'leaderboard',
   title: 'Leaderboard',
   sizes: ['2x2', '4x2'],
