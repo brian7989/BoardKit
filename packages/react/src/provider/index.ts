@@ -1,7 +1,7 @@
 export { defineBoards } from './config/defineBoards.js';
 export { createInitialState } from './config/createInitialState.js';
 export type { CreateInitialStateOptions } from './config/createInitialState.js';
-export { loadBoards } from './persistence/loadBoards.js';
+export { restoreBoards } from './persistence/restoreBoards.js';
 export { useResetBoards } from './hooks/useResetBoards.js';
 export type { BoardsConfig } from './config/BoardsConfig.js';
 export type { ResolvedBreakpoint } from './config/ResolvedBreakpoint.js';
@@ -13,7 +13,6 @@ export { BoardProvider } from './BoardProvider.js';
 export type { BoardProviderProps } from './BoardProvider.js';
 export type { ChangeMeta } from './ChangeMeta.js';
 export { ChangeReason } from './ChangeReason.js';
-export { DragFrom } from './DragFrom.js';
 export { useBoards } from './hooks/useBoards.js';
 export { useLocked } from './hooks/useLocked.js';
 export { useGrid } from './hooks/useGrid.js';

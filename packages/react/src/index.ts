@@ -1,5 +1,5 @@
 // Provider: owns board state and provides it to everything below.
-export { BoardProvider, defineBoards, createInitialState, loadBoards, useResetBoards, useBoards, useLocked, useGrid, useBoardList, useWidgetCatalog, ChangeReason, DragFrom } from './provider/index.js';
+export { BoardProvider, defineBoards, createInitialState, restoreBoards, useResetBoards, useBoards, useLocked, useGrid, useBoardList, useWidgetCatalog, ChangeReason } from './provider/index.js';
 export type {
   BoardsConfig,
   BoardsContextValue,
@@ -31,7 +31,6 @@ export {
   useTileInteraction,
   useTileRemove,
   TilePickingMode,
-  TileHeaderPlacement,
 } from './tile/index.js';
 export type {
   UseTileResult,
@@ -43,10 +42,8 @@ export type {
   UseTileNameResult,
   UseTileInteractionResult,
   UseTileRemoveResult,
-  TileOverlayProps,
-  TileOverlayComponent,
-  TileHeaderProps,
-  TileHeaderComponent,
+  TileProps,
+  TileComponent,
 } from './tile/index.js';
 
 // Widget: how a host defines the widgets a board can place.

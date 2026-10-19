@@ -4,7 +4,7 @@ import { boardId, cell, isFree, OpType, tileId, widgetId, type BoardsState, type
 import { defineWidget } from '../../widget/index.js';
 import { defineBoards } from '../config/defineBoards.js';
 import { createInitialState } from '../config/createInitialState.js';
-import { loadBoards } from './loadBoards.js';
+import { restoreBoards } from './restoreBoards.js';
 
 const w = (type: string, sizes: readonly `${number}x${number}`[]) => defineWidget({ type, title: type, sizes, component: () => null });
 const config = defineBoards({
@@ -22,6 +22,10 @@ const MID = engines[1];
 const NARROW = engines[2];
 const KEY = 'edge';
 const B = boardId('default');
+
+function loadSaved(): BoardsState {
+  return restoreBoards(config, JSON.parse(window.localStorage.getItem(KEY) ?? 'null'));
+}
 
 function engine(value: Engine | undefined): Engine {
   if (!value) throw new Error('missing engine');
@@ -59,7 +63,7 @@ describe('persistence across breakpoints', () => {
     state = apply(MID, engine(MID).reflow(state).state, { type: OpType.Remove, board: B, tile: tileId('t-c') });
     save(engine(MID).serialize(state));
 
-    const loaded = loadBoards(config, KEY);
+    const loaded = loadSaved();
     expect(positions(loaded)).toEqual(positions(state));
     const { ['t-c']: _removed, ...wideWithoutC } = wideEdited;
     expect(positions(engine(WIDE).reflow(loaded).state)).toEqual(wideWithoutC);
@@ -69,13 +73,13 @@ describe('persistence across breakpoints', () => {
     const narrow = engine(NARROW).reflow(createInitialState(config)).state;
     expect(narrow.parked.map((tile) => tile.id)).toEqual([tileId('t-wide')]);
     save(engine(NARROW).serialize(narrow));
-    const widened = engine(WIDE).reflow(loadBoards(config, KEY)).state;
+    const widened = engine(WIDE).reflow(loadSaved()).state;
     expect(positions(widened)).toEqual(positions(createInitialState(config)));
   });
 
   it('migrates an old v2 save made on a narrow grid, float included', () => {
     save({ version: 2, grid: { cols: 2, rows: 4 }, boards: [{ id: 'default', tiles: [{ id: 't0', col: 0, row: 0, size: { w: 1, h: 1 }, active: 0, items: [{ id: 'w0', type: 'a' }], float: { x: 0.5, y: 0.5 } }] }] });
-    const loaded = loadBoards(config, KEY);
+    const loaded = loadSaved();
     const tile = loaded.boards[0]?.tiles[0];
     expect(loaded.grid).toEqual({ cols: 2, rows: 4 });
     expect(tile && isFree(tile)).toBe(true);
@@ -85,12 +89,12 @@ describe('persistence across breakpoints', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     const tile = (id: string, col: number, type: string) => ({ id, col, row: 0, size: { w: 1, h: 1 }, active: 0, items: [{ id: `w${id}`, type }] });
     save({ version: 3, grid: { cols: 2, rows: 4 }, boards: [{ id: 'default', tiles: [tile('t0', 0, 'a'), tile('t1', 1, 'retired')] }], layouts: {} });
-    expect(Object.keys(positions(loadBoards(config, KEY)))).toEqual(['t0']);
+    expect(Object.keys(positions(loadSaved()))).toEqual(['t0']);
   });
 
   it('relocates an out-of-bounds tile in a narrow save instead of discarding the save', () => {
     save({ version: 3, grid: { cols: 2, rows: 4 }, boards: [{ id: 'default', tiles: [{ id: 't0', col: 5, row: 0, size: { w: 1, h: 1 }, active: 0, items: [{ id: 'w0', type: 'a' }] }] }], layouts: {} });
-    const loaded = loadBoards(config, KEY);
+    const loaded = loadSaved();
     expect(loaded.grid).toEqual({ cols: 2, rows: 4 });
     expect(loaded.boards[0]?.tiles[0]?.col).toBeLessThan(2);
   });
@@ -100,7 +104,7 @@ describe('persistence across breakpoints', () => {
     state = apply(MID, state, { type: OpType.StackNew, board: B, onto: tileId('t-a'), widget: { id: widgetId('w-x'), type: 'c', props: { k: 1 } } });
     state = apply(MID, state, { type: OpType.SetFloating, board: B, tile: tileId('t-b'), floating: true });
     save(engine(MID).serialize(state));
-    const loaded = loadBoards(config, KEY);
+    const loaded = loadSaved();
     expect(positions(loaded)).toEqual(positions(state));
     expect(loaded.boards[0]?.tiles.find((tile) => tile.id === tileId('t-a'))?.items[1]?.props).toEqual({ k: 1 });
   });
@@ -108,7 +112,7 @@ describe('persistence across breakpoints', () => {
   it('ignores remembered layouts for tiles that no longer exist and for grids no longer used', () => {
     const state = engine(MID).reflow(createInitialState(config)).state;
     save({ ...engine(MID).serialize(state), layouts: { ...state.layouts, '9x9': [{ tile: 'ghost', board: 'default', col: 0, row: 0, size: { w: 1, h: 1 } }] } });
-    const loaded = loadBoards(config, KEY);
+    const loaded = loadSaved();
     expect(positions(loaded)).toEqual(positions(state));
     expect(positions(engine(WIDE).reflow(loaded).state)).toEqual(positions(createInitialState(config)));
   });
@@ -116,7 +120,7 @@ describe('persistence across breakpoints', () => {
   it('starts from the authored layouts, with a warning, for a save from a newer version', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     save({ version: 99, grid: { cols: 2, rows: 4 }, boards: [] });
-    expect(positions(loadBoards(config, KEY))).toEqual(positions(createInitialState(config)));
+    expect(positions(loadSaved())).toEqual(positions(createInitialState(config)));
     expect(warn).toHaveBeenCalled();
   });
 });

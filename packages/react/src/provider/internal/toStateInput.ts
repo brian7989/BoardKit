@@ -1,4 +1,5 @@
-import { loadBoards } from '../persistence/loadBoards.js';
+import { loadPersistedState } from '../persistence/loadPersistedState.js';
+import { createInitialState } from '../config/createInitialState.js';
 import type { UseControllableBoardsStateInput } from './useControllableBoardsState.js';
 import type { BoardProviderProps } from '../BoardProvider.js';
 
@@ -7,7 +8,7 @@ export function toStateInput(props: BoardProviderProps): UseControllableBoardsSt
   return {
     ...(props.value !== undefined ? { value: props.value } : {}),
     ...(props.defaultValue !== undefined ? { defaultValue: props.defaultValue } : {}),
-    initial: () => loadBoards(props.config, props.storageKey),
+    initial: () => (props.storageKey ? loadPersistedState(props.config, props.storageKey) : null) ?? createInitialState(props.config),
     ...(props.onChange ? { onChange: props.onChange } : {}),
   };
 }

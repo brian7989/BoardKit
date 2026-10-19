@@ -11,12 +11,9 @@ export const DataAttr = {
   StackRole: 'data-bk-stack-role',
   Floating: 'data-bk-floating',
   Free: 'data-bk-free',
-  TileFrame: 'data-bk-tile-frame',
-  TileHeader: 'data-bk-tile-header',
-  TileHeaderPlacement: 'data-bk-tile-header-placement',
   TileBody: 'data-bk-tile-body',
   Empty: 'data-bk-empty',
-  DragFrom: 'data-bk-drag-from',
+  DragHandle: 'data-bk-drag-handle',
 } as const;
 
 export type DataAttr = ValueOf<typeof DataAttr>;

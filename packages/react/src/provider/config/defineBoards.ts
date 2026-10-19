@@ -18,14 +18,11 @@ export interface DefineBoardsInput {
   readonly createId?: () => string;
   /** Design px per cell: the fixed canvas every widget renders at, scaled to fit its real cell. */
   readonly designCellSize?: number;
-  /** Design px height of the tileHeader strip, when a tileHeader is provided (default 32). */
-  readonly headerHeight?: number;
   /** What an uncontrolled `BoardProvider` (no `value`/`defaultValue`, no saved `storageKey` data) starts with. */
   readonly initialLayout?: readonly InitialLayoutTile[];
 }
 
 const DEFAULT_DESIGN_CELL_SIZE = 160;
-const DEFAULT_HEADER_HEIGHT = 32;
 
 /** Builds the engine(s) and config a BoardProvider needs from a grid and widget catalog. */
 export function defineBoards(input: DefineBoardsInput): BoardsConfig {
@@ -41,7 +38,6 @@ export function defineBoards(input: DefineBoardsInput): BoardsConfig {
     widgets: widgetRegistry(input.widgets),
     createId: input.createId ?? createDefaultId,
     designCellSize: input.designCellSize ?? DEFAULT_DESIGN_CELL_SIZE,
-    headerHeight: input.headerHeight ?? DEFAULT_HEADER_HEIGHT,
     ...(input.initialLayout ? { initialLayout: input.initialLayout } : {}),
   };
 }

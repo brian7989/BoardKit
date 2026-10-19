@@ -1,11 +1,12 @@
-import { DragFrom } from '../../provider/DragFrom.js';
 import { DataAttr } from '../../shared/index.js';
 
 const NO_DRAG_SELECTOR = `[${DataAttr.NoDrag}]`;
-const TILE_HEADER_SELECTOR = `[${DataAttr.TileHeader}]`;
+const TILE_SELECTOR = `[${DataAttr.TileId}]`;
+const HANDLE_SELECTOR = `[${DataAttr.DragHandle}]`;
 
-// Excludes noDragProps always; with dragFrom 'header', also requires the header strip specifically.
-export function isDragHandleTarget(target: EventTarget | null, dragFrom: DragFrom): boolean {
+// Never from noDragProps. A tile that renders a drag handle drags only from it; one that doesn't drags from anywhere.
+export function isDragHandleTarget(target: EventTarget | null): boolean {
   if (!(target instanceof Element) || target.closest(NO_DRAG_SELECTOR)) return false;
-  return dragFrom === DragFrom.Tile || target.closest(TILE_HEADER_SELECTOR) !== null;
+  const hasHandle = target.closest(TILE_SELECTOR)?.querySelector(HANDLE_SELECTOR);
+  return !hasHandle || target.closest(HANDLE_SELECTOR) !== null;
 }

@@ -68,9 +68,9 @@ export function App() {
 |---|---|
 | [Getting started](docs/getting-started.md) | Installing, your first board, the shape of a widget. |
 | [Widgets](docs/widgets.md) | `defineWidget`, sizes, the fixed design size, `useWidget`, `noDragProps`. |
-| [Boards & state](docs/boards-and-state.md) | Controlled vs. uncontrolled, `initialLayout`, `storageKey`, repair. |
+| [Boards & state](docs/boards-and-state.md) | Controlled vs. uncontrolled, `initialLayout`, saving (`storageKey`, `restoreBoards`), repair. |
 | [Layout & breakpoints](docs/layout-and-breakpoints.md) | The grid array, per-breakpoint layouts, reflow, `useGrid`. |
-| [Chrome](docs/chrome.md) | `tileHeader`, `tileOverlay`, menus, add-widget, page dots, toasts. |
+| [Chrome](docs/chrome.md) | Your own `tile`, menus, add-widget, page dots, toasts. |
 | [Styling](docs/styling.md) | CSS variables and `data-bk-*` attributes. |
 | [Engine](docs/engine.md) | Using `boardkit-core` standalone, with no React. |
 | [API reference](docs/api.md) | Every export of `boardkit-react`, one line each. |
@@ -79,26 +79,29 @@ export function App() {
 <details>
 <summary><strong>Advanced: per-tile hooks</strong></summary>
 
-Every structural action (resize, float, stack, rename, remove) is a hook, for building your own tile header:
+Every structural action (resize, float, stack, rename, remove) is a hook, for building your own tile:
 
 ```tsx
-import { noDragProps, useTile, type TileHeaderProps } from 'boardkit-react';
+import { noDragProps, useTile, type TileProps } from 'boardkit-react';
 
-function TileHeader({ tile, name }: TileHeaderProps) {
-  const { float, remove } = useTile(tile);
+function Card({ tile, widget, dragHandle, surface }: TileProps) {
+  const { name, float, remove } = useTile(tile);
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <strong>{name}</strong>
-      <span {...noDragProps()}>
-        <button onClick={() => float.toggle()}>{float.isFloating ? 'Unfloat' : 'Float'}</button>
-        <button onClick={() => remove()}>Remove</button>
-      </span>
+    <div className="card" style={surface}>
+      <div className="card-header" {...dragHandle}>
+        <strong>{name.current}</strong>
+        <span {...noDragProps()}>
+          <button onClick={() => float.toggle()}>{float.isFloating ? 'Unfloat' : 'Float'}</button>
+          <button onClick={() => remove()}>Remove</button>
+        </span>
+      </div>
+      <div className="card-body">{widget}</div>
     </div>
   );
 }
 ```
 
-Hand it to `BoardProvider` as `tileHeader={TileHeader}`. See [Chrome](docs/chrome.md) for the rest.
+Hand it to `BoardProvider` as `tile={Card}`. See [Chrome](docs/chrome.md) for the rest.
 
 </details>
 

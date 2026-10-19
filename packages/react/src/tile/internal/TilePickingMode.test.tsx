@@ -10,7 +10,7 @@ import type { ChangeMeta } from '../../provider/ChangeMeta.js';
 import { defineBoards } from '../../provider/config/defineBoards.js';
 import { defineWidget, type WidgetProps } from '../../widget/index.js';
 import { useTile } from '../useTile.js';
-import type { TileOverlayProps } from '../TileOverlay.js';
+import type { TileProps } from '../TileContext.js';
 
 const SIZE_SMALL = { w: cell(1), h: cell(1) };
 const SIZE_WIDE = { w: cell(2), h: cell(1) };
@@ -60,7 +60,7 @@ function seedState(): BoardsState {
   return state;
 }
 
-function TestChrome({ tile }: TileOverlayProps) {
+function TestChromeControls({ tile }: Pick<TileProps, 'tile'>) {
   const { stack } = useTile(tile);
   const picking = useStackPicking();
   return (
@@ -68,6 +68,18 @@ function TestChrome({ tile }: TileOverlayProps) {
       <button onClick={() => stack.startPicking()}>start</button>
       <span data-testid="picking-status">{picking ? `picking:${picking.sourceTile}` : 'idle'}</span>
     </div>
+  );
+}
+
+// Renders the widget, with the test's controls beside it in a no-drag wrapper.
+function TestChrome({ tile, widget }: TileProps) {
+  return (
+    <>
+      {widget}
+      <div data-bk-no-drag="true">
+        <TestChromeControls tile={tile} />
+      </div>
+    </>
   );
 }
 
@@ -94,7 +106,7 @@ afterEach(cleanup);
 describe('stack picking mode', () => {
   it('is null while idle', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedState()} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -104,7 +116,7 @@ describe('stack picking mode', () => {
 
   it('marks the source, an eligible same-size target, and an ineligible one while picking', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedState()} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -120,7 +132,7 @@ describe('stack picking mode', () => {
   it('clicking the source tile again cancels without stacking', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -136,7 +148,7 @@ describe('stack picking mode', () => {
   it('clicking an eligible target completes the stack', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -152,7 +164,7 @@ describe('stack picking mode', () => {
 
   it('Escape cancels picking', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedState()} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );

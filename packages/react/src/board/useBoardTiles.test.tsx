@@ -6,7 +6,7 @@ import { boardId, cell, OpType, tileId, widgetId, type BoardsState } from 'board
 import { defineBoards } from '../provider/config/defineBoards.js';
 import { BoardProvider } from '../provider/BoardProvider.js';
 import { defineWidget, type WidgetProps } from '../widget/index.js';
-import type { TileOverlayProps } from '../tile/TileOverlay.js';
+import type { TileProps } from '../tile/TileContext.js';
 import { Board } from './Board.js';
 import { useBoardTiles } from './useBoardTiles.js';
 
@@ -74,10 +74,22 @@ function CommittedProbe() {
   return <pre data-testid="tiles">{JSON.stringify(positionsOf(tiles))}</pre>;
 }
 
-function PreviewProbe({ tile }: TileOverlayProps) {
+function PreviewProbeControls({ tile }: Pick<TileProps, 'tile'>) {
   const tiles = useBoardTiles();
   if (tile.id !== T1) return null;
   return <pre data-testid="tiles">{JSON.stringify(positionsOf(tiles))}</pre>;
+}
+
+// Renders the widget, with the test's controls beside it in a no-drag wrapper.
+function PreviewProbe({ tile, widget }: TileProps) {
+  return (
+    <>
+      {widget}
+      <div data-bk-no-drag="true">
+        <PreviewProbeControls tile={tile} />
+      </div>
+    </>
+  );
 }
 
 function tileElement(id: typeof T1): Element {
@@ -121,7 +133,7 @@ describe('useBoardTiles', () => {
 
   it('returns the previewed arrangement while a valid drag is in progress', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedState()} tileOverlay={PreviewProbe}>
+      <BoardProvider config={config} defaultValue={seedState()} tile={PreviewProbe}>
         <Board />
       </BoardProvider>,
     );

@@ -19,9 +19,5 @@ export { useTileRemove } from './hooks/useTileRemove.js';
 export type { UseTileRemoveResult } from './hooks/useTileRemove.js';
 export { TilePickingMode } from './internal/TilePickingMode.js';
 
-export { TileOverlayContext } from './TileOverlay.js';
-export type { TileOverlayProps, TileOverlayComponent } from './TileOverlay.js';
-
-export { TileHeaderContext } from './TileHeader.js';
-export type { TileHeaderProps, TileHeaderComponent } from './TileHeader.js';
-export { TileHeaderPlacement } from './TileHeaderPlacement.js';
+export { TileContext } from './TileContext.js';
+export type { TileProps, TileComponent } from './TileContext.js';

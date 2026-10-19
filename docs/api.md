@@ -7,13 +7,13 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | Export | What it is |
 |---|---|
 | `BoardProvider` | Owns board state (controlled or uncontrolled) and provides it to everything below it. |
-| `BoardProviderProps` (type) | Its props: `config`, `value`/`onChange`, `storageKey` (saves controlled boards too), `tileOverlay`, `tileHeader`, `dragFrom`, `onReject`, ... |
+| `BoardProviderProps` (type) | Its props: `config`, `value`/`onChange`, `storageKey` (uncontrolled boards), `tile`, `onReject`, ... |
 | `defineBoards` | Builds the engine(s) and widget catalog once, from a grid (or breakpoints) and widget list. |
 | `DefineBoardsInput` (type) | Input to `defineBoards`. |
 | `BoardsConfig` (type) | What `defineBoards` returns and `BoardProvider` takes as `config`. |
 | `createInitialState` | Builds the `BoardsState` an uncontrolled board would start from, without a provider, with every breakpoint's authored layout. Optional `{ width }` starts it on that width's breakpoint. |
 | `CreateInitialStateOptions` (type) | `createInitialState`'s options: `width`. |
-| `loadBoards` | What's saved under a `storageKey` (repaired), else `createInitialState` — a controlled board's starting state. |
+| `restoreBoards` | Turns a board you saved yourself back into a valid state (migrated, repaired, on its own breakpoint), else `createInitialState`. |
 | `useResetBoards` | Returns a function that resets the board to its authored layouts on every breakpoint. |
 | `GridBreakpoint` (type) | One entry of a responsive grid: `minWidth`, `cols`, `rows`, optional `cellAspect`, optional `initialLayout`. |
 | `ResolvedBreakpoint` (type) | A `GridBreakpoint` with its own engine already built. |
@@ -21,7 +21,6 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | `InitialStackItem` (type) | A widget stacked under an `InitialLayoutTile`'s own, via its `stack`. |
 | `ChangeMeta` (type) | `onChange`'s second argument: why the state changed (`'op'`, `'reflow'` or `'reset'`). |
 | `ChangeReason` | The `ChangeMeta` reasons: `'op'`, `'reflow'` and `'reset'`. |
-| `DragFrom` | Where a tile's drag may start: `'header'` (default, header strip only) or `'tile'` (anywhere). |
 | `BoardsContextValue` (type) | The raw context value `useBoards` returns. |
 | `useBoards` | Escape hatch: raw state, dispatch, active board, and the engine. |
 | `useLocked` | Whether the board is currently read-only. |
@@ -54,8 +53,7 @@ Every export of `boardkit-react`, one line each. See the linked guide for the fu
 | `useTileInteraction` / `UseTileInteractionResult` | A tile's live drag/valid/locked state. |
 | `useTileRemove` / `UseTileRemoveResult` | `remove` to delete a tile from its board. |
 | `TilePickingMode` | A tile's role during a "stack with…" pick: idle/source/eligible/ineligible. |
-| `TileOverlayProps` / `TileOverlayComponent` (types) | The props a `tileOverlay` component receives, and its component shape. |
-| `TileHeaderProps` / `TileHeaderComponent` (types) | The props a `tileHeader` component receives, and its component shape. |
+| `TileProps` / `TileComponent` (types) | The props your `tile` component receives (`tile`, `widget`, `dragHandle`, `surface`, `header`), and its component shape. |
 
 ## Widget
 

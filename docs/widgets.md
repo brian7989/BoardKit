@@ -49,8 +49,8 @@ small cell up to a wide desktop board, because BoardKit handles the scaling, not
 
 `WidgetProps.designSize` (also returned by `useWidget()`) exposes this canvas as
 `{ width, height }` in design px — useful when a widget needs to size a child numerically (a
-chart, a `<canvas>`) instead of through CSS. It excludes the `tileHeader` strip when the widget
-has one, so a widget's own layout never has to account for it.
+chart, a `<canvas>`) instead of through CSS. It's the box the widget is actually given, so a
+header or padding in a host's `tile` is already taken out of it.
 
 ## `useWidget`
 
@@ -86,11 +86,10 @@ Every widget instance has a display name — the manifest's `title` unless a hos
 
 ## `header: false`
 
-By default, a host's `tileHeader` (see [Chrome](chrome.md)) reserves a strip above every widget's
-body. Set `header: false` on a manifest to opt that widget out and get the full tile box back —
-useful for a widget that wants to draw its own name and controls. `tileOverlay` then receives
-`hasHeader: false` for that tile, so a host's overlay chrome can float its own controls only when
-there's no strip to put them in.
+Set `header: false` on a manifest to tell a host's `tile` (see [Chrome](chrome.md)) that this
+widget wants the full tile box: useful for a widget that draws its own name and controls, or a
+photo that should run edge to edge. The host's `tile` receives `header: false` and decides what to
+drop; a tile it renders without a drag handle drags from anywhere.
 
 ## `surface`
 
@@ -101,12 +100,12 @@ defineWidget({
 });
 ```
 
-Applied as inline styles on the tile's frame (header strip and body together), so a dark widget's
-header matches its own body instead of defaulting to the host's usual tile look.
+Applied as inline styles on the widget's body, and passed to a host's `tile` as its `surface`
+prop, so a dark widget's header can match its own body instead of the host's usual tile look.
 
 ## Interactive controls: `noDragProps`
 
-A tile without a header strip, or any tile under `dragFrom="tile"`, drags from anywhere on it,
+A tile without a drag handle (see [Chrome](chrome.md)) drags from anywhere on it,
 including on top of your widget. There, a control that needs its own pointer gesture (a slider, a
 drag-to-reorder list, a canvas you pan) must opt out, or dragging it will instead drag the tile:
 
@@ -124,5 +123,5 @@ of the widget should stay draggable.
 ## Next
 
 - [Boards & state](boards-and-state.md) — placing widgets via `initialLayout`, persistence.
-- [Chrome](chrome.md) — `tileHeader`, `tileOverlay`, and an add-widget gallery.
+- [Chrome](chrome.md) — your own `tile`, menus, and an add-widget gallery.
 - [API reference](api.md).

@@ -5,7 +5,7 @@ import { PageDots } from './board/PageDots';
 import { boards } from './board/config';
 import { AddWidgetMenu } from './header/AddWidgetMenu';
 import { Header } from './header/Header';
-import { TileHeader } from './tile/TileHeader';
+import { TileCard } from './tile/TileCard';
 
 function showRejection(rejection: Rejection) {
   notifications.show({ color: 'red', message: describeRejection(rejection) });
@@ -23,7 +23,7 @@ const emptyState = (
 export function App() {
   return (
     <Stack h="100dvh" gap="md" p="lg">
-      <BoardProvider config={boards} storageKey="boardkit-playground" onReject={showRejection} tileHeader={TileHeader}>
+      <BoardProvider config={boards} storageKey="boardkit-playground" onReject={showRejection} tile={TileCard}>
         <Header />
         <Box className="tile-area">
           <Board emptyState={emptyState} />

@@ -115,7 +115,7 @@ float.setFree(true); // snapped → free, in place
 float.setFree(false); // free → snapped, rounding onto the Overlay layer's solver
 ```
 
-Dragging works from anywhere `dragFrom` allows (the whole tile, or just its header strip). A Free
+Dragging works from the tile's drag handle, or anywhere on a tile without one. A Free
 tile follows the pointer and lands wherever it is dropped. A snapped Overlay tile drags exactly like
 a grid tile: it follows the pointer smoothly while a placeholder marks the cell it will land on,
 other Overlay tiles slide aside (and back, if you move on), and nothing is saved until release. An

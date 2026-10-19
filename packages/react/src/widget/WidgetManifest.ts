@@ -10,9 +10,9 @@ export interface WidgetManifest<P extends object = Record<string, unknown>> {
   readonly sizes: readonly Size[];
   readonly defaultProps?: Readonly<P>;
   readonly component: ComponentType<WidgetProps<P>>;
-  /** Set false to opt this widget out of the host's tileHeader strip entirely (default true). */
+  /** Set false to ask the host's tile for no header, so this widget fills the whole tile (default true). */
   readonly header?: boolean;
-  /** Applied as inline background/color on the tile frame, so a dark widget gets a matching dark header. */
+  /** Background/text color for the widget body, also handed to the host's tile so its frame can match. */
   readonly surface?: { readonly background?: string; readonly color?: string };
 }
 

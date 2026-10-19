@@ -11,7 +11,7 @@ export interface TileMenuDropdownProps extends UseTileMenuResult {
 }
 
 // The menu content itself, shared by the floating (headerless) trigger and the inline one in
-// the tileHeader strip — only the trigger element differs between the two.
+// the header strip — only the trigger element differs between the two.
 export function TileMenuDropdown({ t, dialog, setDialog, opened, setOpened, isStack, remove, trigger }: TileMenuDropdownProps) {
   return (
     <>

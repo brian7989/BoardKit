@@ -2,7 +2,8 @@ import type { BoardsState, Engine } from 'boardkit-core';
 import type { UseBoardsPersistenceInput } from '../persistence/useBoardsPersistence.js';
 import type { BoardProviderProps } from '../BoardProvider.js';
 
-// Controlled boards persist too: the host loads with `loadBoards`, and every commit is saved here.
+// Uncontrolled only: a controlled host owns its state, so it owns saving it too (see `restoreBoards`).
 export function toPersistenceInput(props: BoardProviderProps, engine: Engine, state: BoardsState): UseBoardsPersistenceInput {
-  return { engine, state, ...(props.storageKey ? { storageKey: props.storageKey } : {}) };
+  const saves = props.storageKey !== undefined && props.value === undefined;
+  return { engine, state, ...(saves ? { storageKey: props.storageKey } : {}) };
 }

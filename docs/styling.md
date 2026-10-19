@@ -22,7 +22,6 @@ The gutter between tiles, default `0px`. Set it on any ancestor of `<Board>` —
 |---|---|---|
 | `data-bk-tile-id` | Every tile | Present on every tile's root element (its value is the tile's id). |
 | `data-bk-draggable` | Every tile | `"true"` once a tile is draggable — effectively always. |
-| `data-bk-drag-from` | Every tile | `"header"` or `"tile"` — which element is that tile's actual drag handle, per `dragFrom`. |
 | `data-bk-lifted` | A tile | `"true"` for the brief lift just before a drag becomes active. |
 | `data-bk-active` | A tile | `"true"` while a tile is actively being dragged or resized. |
 | `data-bk-valid` | A tile | `"true"`/`"false"` during an active drag: whether the current position is a legal drop. |
@@ -31,8 +30,7 @@ The gutter between tiles, default `0px`. Set it on any ancestor of `<Board>` —
 | `data-bk-placeholder` | The drop halo | `"true"` on the placeholder shown at the drop target mid-drag. |
 | `data-bk-stack-role` | A tile | During a "stack with…" pick: `"eligible"`, `"source"`, or `"ineligible"`. |
 | `data-bk-no-drag` | Your own elements | Set via `noDragProps()` — stops pointer activity there from starting a tile drag. |
-| `data-bk-tile-frame` | Inside a tile | Wraps a widget's header strip and body together. |
-| `data-bk-tile-header` | Inside a tile | Wraps the `tileHeader` strip specifically. |
+| `data-bk-drag-handle` | Your `tile`'s handle | Set via the `dragHandle` prop — the only place that tile drags from. |
 | `data-bk-tile-body` | Inside a tile | Wraps a widget's own rendered body. |
 
 Selector examples, without the default stylesheet:

@@ -9,7 +9,7 @@ import type { ChangeMeta } from '../../provider/ChangeMeta.js';
 import { defineBoards } from '../../provider/config/defineBoards.js';
 import { defineWidget, type WidgetProps } from '../../widget/index.js';
 import { useTile } from '../useTile.js';
-import type { TileOverlayProps } from '../TileOverlay.js';
+import type { TileProps } from '../TileContext.js';
 
 const SIZE_SMALL = { w: cell(1), h: cell(1) };
 const SIZE_WIDE = { w: cell(2), h: cell(1) };
@@ -72,7 +72,7 @@ function seedStackedState(): BoardsState {
   return result.value.state;
 }
 
-function TestChrome({ tile }: TileOverlayProps) {
+function TestChromeControls({ tile }: Pick<TileProps, 'tile'>) {
   const { stack } = useTile(tile);
   return (
     <div data-testid={`chrome-${tile.id}`}>
@@ -90,6 +90,18 @@ function TestChrome({ tile }: TileOverlayProps) {
   );
 }
 
+// Renders the widget, with the test's controls beside it in a no-drag wrapper.
+function TestChrome({ tile, widget }: TileProps) {
+  return (
+    <>
+      {widget}
+      <div data-bk-no-drag="true">
+        <TestChromeControls tile={tile} />
+      </div>
+    </>
+  );
+}
+
 function chromeFor(tile: typeof T1): HTMLElement {
   return screen.getByTestId(`chrome-${tile}`);
 }
@@ -99,7 +111,7 @@ afterEach(cleanup);
 describe('useTileStack', () => {
   it('lists every item and marks which one is active', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedStackedState()} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedStackedState()} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -112,7 +124,7 @@ describe('useTileStack', () => {
   it('select(widget) makes it the active item', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -126,7 +138,7 @@ describe('useTileStack', () => {
   it('unstack(widget) pops it back into its own tile', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -142,7 +154,7 @@ describe('useTileStack', () => {
   it('reorder(widget, toIndex) moves it within the stack', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -156,7 +168,7 @@ describe('useTileStack', () => {
   it('renameItem(widget, name) sets its displayName', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedStackedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -169,7 +181,7 @@ describe('useTileStack', () => {
 
   it('canCombine is true next to a same-size sibling and false otherwise', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedSeparateState()} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedSeparateState()} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -181,7 +193,7 @@ describe('useTileStack', () => {
   it('combineWith(target) stacks this tile onto the target directly', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedSeparateState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedSeparateState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -199,7 +211,7 @@ describe('useTileStack', () => {
   it('addWidget(type, props) stacks a brand-new widget onto a lone tile, showing it, with no grid space needed', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedSeparateState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedSeparateState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -216,7 +228,7 @@ describe('useTileStack', () => {
 
   it('canAddWidget reports which registered types allow the tile size', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedSeparateState()} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedSeparateState()} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );

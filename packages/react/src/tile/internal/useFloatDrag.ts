@@ -5,13 +5,11 @@ import { isDragHandleTarget } from '../../interaction/dragGesture/isDragHandleTa
 import { measureRect } from '../../interaction/measureRect.js';
 import { useBoardsConfig } from '../../provider/internal/useBoardsConfig.js';
 import type { Dispatch } from '../../provider/internal/useDispatch.js';
-import type { DragFrom } from '../../provider/DragFrom.js';
 
 export interface UseFloatDragInput {
   readonly tile: TileId;
   readonly board: BoardId;
   readonly enabled: boolean;
-  readonly dragFrom: DragFrom;
   readonly origin: FractionalCell;
 }
 
@@ -26,14 +24,13 @@ const PRIMARY_BUTTON = 0;
 
 interface CanStartFloatDragInput {
   readonly enabled: boolean;
-  readonly dragFrom: DragFrom;
   readonly boardRef: RefObject<HTMLDivElement> | undefined;
   readonly event: ReactPointerEvent;
 }
 
 function canStartFloatDrag(input: CanStartFloatDragInput): boolean {
-  const { enabled, dragFrom, boardRef, event } = input;
-  return enabled && boardRef !== undefined && event.button === PRIMARY_BUTTON && isDragHandleTarget(event.target, dragFrom);
+  const { enabled, boardRef, event } = input;
+  return enabled && boardRef !== undefined && event.button === PRIMARY_BUTTON && isDragHandleTarget(event.target);
 }
 
 function pointerToFractionalCell(at: Point<Px>, boardRef: RefObject<HTMLDivElement>, grid: Grid): FractionalCell {
@@ -56,7 +53,7 @@ function floatMoveTo(input: FloatMoveInput, offset: FractionalCell, at: Point<Px
 }
 
 export function useFloatDrag(input: UseFloatDragInput): UseFloatDragResult {
-  const { tile, board, enabled, dragFrom, origin } = input;
+  const { tile, board, enabled, origin } = input;
   const interaction = useInteraction();
   const { dispatch, grid } = useBoardsConfig();
   const boardRef = interaction?.boardRef;
@@ -64,7 +61,7 @@ export function useFloatDrag(input: UseFloatDragInput): UseFloatDragResult {
 
   return useDragGesture({
     enabled,
-    canStart: (event) => canStartFloatDrag({ enabled, dragFrom, boardRef, event }),
+    canStart: (event) => canStartFloatDrag({ enabled, boardRef, event }),
     onGrab: (at) => {
       if (!boardRef) return;
       const grabbed = pointerToFractionalCell(at, boardRef, grid);

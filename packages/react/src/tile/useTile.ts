@@ -20,7 +20,7 @@ export interface UseTileResult {
 
 /**
  * Structural actions for a tile, for a host's own chrome. Pass the tile a rendered
- * TileOverlay receives, not one captured earlier — during a drag, tiles are previewed copies.
+ * your tile component receives, not one captured earlier — during a drag, tiles are previewed copies.
  */
 export function useTile(tile: Tile): UseTileResult {
   const size = useTileSize(tile);

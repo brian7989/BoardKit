@@ -9,7 +9,7 @@ import type { ChangeMeta } from '../../provider/ChangeMeta.js';
 import { defineBoards } from '../../provider/config/defineBoards.js';
 import { defineWidget, type WidgetProps } from '../../widget/index.js';
 import { useTile } from '../useTile.js';
-import type { TileOverlayProps } from '../TileOverlay.js';
+import type { TileProps } from '../TileContext.js';
 
 class PointerEventPolyfill extends MouseEvent {
   public readonly pointerId: number;
@@ -43,12 +43,24 @@ function Label({ props }: WidgetProps<LabelProps>) {
   return <span>{props.label}</span>;
 }
 
-function TestChrome({ tile }: TileOverlayProps) {
+function TestChromeControls({ tile }: Pick<TileProps, 'tile'>) {
   const { float } = useTile(tile);
   return (
     <>
       <button onClick={() => float.toggle()}>{float.isFloating ? 'Unfloat' : 'Float'}</button>
       <button onClick={() => float.setFree(!float.isFree)}>{float.isFree ? 'Snap' : 'Free'}</button>
+    </>
+  );
+}
+
+// Renders the widget, with the test's controls beside it in a no-drag wrapper.
+function TestChrome({ tile, widget }: TileProps) {
+  return (
+    <>
+      {widget}
+      <div data-bk-no-drag="true">
+        <TestChromeControls tile={tile} />
+      </div>
     </>
   );
 }
@@ -107,7 +119,7 @@ describe('floating a tile', () => {
   it('toggles floating on and off through the host chrome', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     const { rerender } = render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -117,7 +129,7 @@ describe('floating a tile', () => {
     if (!state) throw new Error('expected a committed state after floating');
     expect(state.boards[0]?.tiles[0]).toMatchObject({ float: { x: 0, y: 0 } });
     rerender(
-      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} value={state} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -129,7 +141,7 @@ describe('floating a tile', () => {
     if (!state) throw new Error('expected a committed state after unfloating');
     expect(state.boards[0]?.tiles[0]).not.toHaveProperty('float');
     rerender(
-      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} value={state} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -139,7 +151,7 @@ describe('floating a tile', () => {
   it('drags a snapped (Overlay) floating tile, rounding to the nearest cell', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     const { rerender } = render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -148,7 +160,7 @@ describe('floating a tile', () => {
     let state = onChange.mock.calls.at(-1)?.[0];
     if (!state) throw new Error('expected a committed state after floating');
     rerender(
-      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} value={state} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -179,7 +191,7 @@ describe('floating a tile', () => {
     if (!seeded.ok) throw new Error('fixture add should succeed');
 
     const { rerender } = render(
-      <BoardProvider config={config} defaultValue={seeded.value.state} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seeded.value.state} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -188,7 +200,7 @@ describe('floating a tile', () => {
     const state = onChange.mock.calls.at(-1)?.[0];
     if (!state) throw new Error('expected a committed state after floating');
     rerender(
-      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} value={state} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -225,7 +237,7 @@ describe('floating a tile', () => {
   it('drags a Free tile continuously, not snapped to the grid', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     const { rerender } = render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -236,7 +248,7 @@ describe('floating a tile', () => {
     if (!state) throw new Error('expected a committed state after going free');
     expect(state.boards[0]?.tiles[0]?.float?.free).toBe(true);
     rerender(
-      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} value={state} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -259,7 +271,7 @@ describe('floating a tile', () => {
     vi.useFakeTimers();
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     const { rerender } = render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -269,7 +281,7 @@ describe('floating a tile', () => {
     let state = onChange.mock.calls.at(-1)?.[0];
     if (!state) throw new Error('expected a committed state after going free');
     rerender(
-      <BoardProvider config={config} value={state} onChange={onChange} tileOverlay={TestChrome}>
+      <BoardProvider config={config} value={state} onChange={onChange} tile={TestChrome}>
         <Board />
       </BoardProvider>,
     );

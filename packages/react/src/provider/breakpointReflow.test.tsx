@@ -12,7 +12,7 @@ import { defineBoards } from './config/defineBoards.js';
 import { defineWidget } from '../widget/index.js';
 import { useBoards } from './hooks/useBoards.js';
 import { useResetBoards } from './hooks/useResetBoards.js';
-import { loadBoards } from './persistence/loadBoards.js';
+import { restoreBoards } from './persistence/restoreBoards.js';
 
 afterEach(cleanup);
 
@@ -256,7 +256,7 @@ describe('breakpoint reflow', () => {
       return <button onClick={reset}>reset</button>;
     }
     function Host() {
-      const [state, setState] = useState(() => loadBoards(authored));
+      const [state, setState] = useState(() => restoreBoards(authored, null));
       return (
         <BoardProvider config={authored} value={state} onChange={(next) => setState(next)}>
           <ResetButton />

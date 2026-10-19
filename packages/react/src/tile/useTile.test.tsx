@@ -10,7 +10,7 @@ import type { ChangeMeta } from '../provider/ChangeMeta.js';
 import { defineBoards } from '../provider/config/defineBoards.js';
 import { defineWidget, type WidgetProps } from '../widget/index.js';
 import { useTile, type UseTileResult } from './useTile.js';
-import type { TileOverlayProps } from './TileOverlay.js';
+import type { TileProps } from './TileContext.js';
 
 const SIZE_SMALL = { w: cell(1), h: cell(1) };
 const SIZE_WIDE = { w: cell(2), h: cell(1) };
@@ -43,12 +43,24 @@ function seedState(): BoardsState {
 
 let captured: UseTileResult | undefined;
 
-function CaptureChrome({ tile }: TileOverlayProps) {
+function CaptureChromeControls({ tile }: Pick<TileProps, 'tile'>) {
   captured = useTile(tile);
   return null;
 }
 
-function ActionChrome({ tile }: TileOverlayProps) {
+// Renders the widget, with the test's controls beside it in a no-drag wrapper.
+function CaptureChrome({ tile, widget }: TileProps) {
+  return (
+    <>
+      {widget}
+      <div data-bk-no-drag="true">
+        <CaptureChromeControls tile={tile} />
+      </div>
+    </>
+  );
+}
+
+function ActionChromeControls({ tile }: Pick<TileProps, 'tile'>) {
   const { size, name, remove } = useTile(tile);
   const [lastResult, setLastResult] = useState('');
   return (
@@ -63,6 +75,18 @@ function ActionChrome({ tile }: TileOverlayProps) {
   );
 }
 
+// Renders the widget, with the test's controls beside it in a no-drag wrapper.
+function ActionChrome({ tile, widget }: TileProps) {
+  return (
+    <>
+      {widget}
+      <div data-bk-no-drag="true">
+        <ActionChromeControls tile={tile} />
+      </div>
+    </>
+  );
+}
+
 afterEach(() => {
   cleanup();
   captured = undefined;
@@ -71,7 +95,7 @@ afterEach(() => {
 describe('useTile', () => {
   it('groups every tile action under its own area, in a stable order', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedState()} tileOverlay={CaptureChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} tile={CaptureChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -83,7 +107,7 @@ describe('useTile', () => {
   it('size.set commits a Resize', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={ActionChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={ActionChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -98,7 +122,7 @@ describe('useTile', () => {
   it('name.set commits a RenameWidget', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={ActionChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={ActionChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -112,7 +136,7 @@ describe('useTile', () => {
   it('remove() deletes the tile', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={ActionChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={ActionChrome}>
         <Board />
       </BoardProvider>,
     );
@@ -126,7 +150,7 @@ describe('useTile', () => {
   it('a rejected action returns ok:false and commits nothing', () => {
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
-      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tileOverlay={ActionChrome}>
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange} tile={ActionChrome}>
         <Board />
       </BoardProvider>,
     );

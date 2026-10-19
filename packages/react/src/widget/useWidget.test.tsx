@@ -39,7 +39,7 @@ afterEach(cleanup);
 
 describe('useWidget', () => {
   it('exposes the same props to a component nested below the widget root', () => {
-    render(<WidgetContainer tile={tileFor()} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} headerHeightPx={32} />);
+    render(<WidgetContainer tile={tileFor()} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} />);
     expect(screen.getByText('active=true cell=1x1 design=160x160')).toBeInTheDocument();
   });
 

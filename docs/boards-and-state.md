@@ -19,15 +19,15 @@ empty if there is none.
 
 ## Controlled
 
-Pass `value` and `onChange` to own the state yourself — for undo stacks, syncing to a backend, or
-driving several boards from one store:
+Pass `value` and `onChange` to own the state yourself — to keep it in your own store (Zustand,
+Redux), sync it to a backend, or drive several boards from one store:
 
 ```tsx
 import { useState } from 'react';
-import { BoardProvider, Board, type BoardsState } from 'boardkit-react';
+import { BoardProvider, Board, createInitialState, type BoardsState } from 'boardkit-react';
 
 function App() {
-  const [state, setState] = useState<BoardsState>(() => boards.engine.empty());
+  const [state, setState] = useState<BoardsState>(() => createInitialState(boards));
   return (
     <BoardProvider config={boards} value={state} onChange={(next) => setState(next)}>
       <Board />
@@ -39,7 +39,7 @@ function App() {
 `onChange`'s second argument is `ChangeMeta`: `{ reason: 'op', op, changes }` for a dispatched
 action, `{ reason: 'reset' }` after `useResetBoards`, or `{ reason: 'reflow', changes }` for an automatic breakpoint reflow (see
 [Layout & breakpoints](layout-and-breakpoints.md)) — useful for deciding what's worth persisting
-or announcing.
+or announcing. To save a controlled board and load it back, see [Saving boards](#saving-boards).
 
 ## `initialLayout`
 
@@ -127,27 +127,81 @@ const boards = defineBoards({
 
 `useResetBoards()` returns a function that puts the board back to its authored layouts on every
 breakpoint. It commits through `onChange` with `{ reason: 'reset' }`, so a controlled host's state
-and a `storageKey` save both follow.
+(and whatever saves it) or a `storageKey` save follows.
 
-## `storageKey` and repair
+## Saving boards
 
-With `storageKey`, a board saves its state to `localStorage` (debounced, flushed on `pagehide`). An
-uncontrolled board also loads it back on mount; a controlled one starts from `loadBoards`:
+### Uncontrolled: `storageKey`
+
+With `storageKey`, an uncontrolled board saves its state to `localStorage` (debounced, flushed on
+`pagehide`) and loads it back on mount.
+
+```tsx
+<BoardProvider config={boards} storageKey="my-board">
+```
+
+### Controlled: you save it, `restoreBoards` loads it
+
+A controlled board's state is yours, so saving it is too: in Zustand, a backend, anywhere. BoardKit
+owns the format; the state is plain JSON, safe to store as-is. `storageKey` is ignored on a
+controlled board. When loading it back, run it through `restoreBoards`:
 
 ```ts
-const [state, setState] = useState(() => loadBoards(boards, 'my-board'));
+const state = restoreBoards(boards, savedValue);
 ```
- Loading never trusts what's there blindly: BoardKit parses
-it and **repairs** anything that no longer validates — an out-of-bounds tile is relocated onto
-free space instead of failing outright, and a tile referencing a widget type that's no longer
-registered is dropped, with a dev-only console warning either way. A completely unparsable value
-(corrupted JSON, wrong shape) falls back to `initialLayout` or empty, never a thrown error.
+
+With Zustand's `persist`, that goes in `merge`:
+
+```ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { restoreBoards, type BoardsState } from 'boardkit-react';
+
+interface BoardStore {
+  readonly boards: BoardsState;
+  readonly setBoards: (boards: BoardsState) => void;
+}
+
+export const useBoardStore = create<BoardStore>()(
+  persist(
+    (set) => ({
+      boards: restoreBoards(boards, null),
+      setBoards: (next) => set({ boards: next }),
+    }),
+    {
+      name: 'my-board',
+      partialize: (store) => ({ boards: store.boards }),
+      merge: (persisted, current) => ({
+        ...current,
+        boards: restoreBoards(boards, (persisted as { boards?: unknown } | undefined)?.boards),
+      }),
+    },
+  ),
+);
+
+function Dashboard() {
+  const { boards: state, setBoards } = useBoardStore();
+  return <BoardProvider config={boards} value={state} onChange={setBoards}>{/* ... */}</BoardProvider>;
+}
+```
+
+`restoreBoards(config, saved, options?)` takes whatever you saved (`null`/`undefined` for
+nothing) and returns a valid state: migrated from older versions, on the breakpoint it was saved
+at, or the authored layouts (`createInitialState(config, options)`) if nothing usable was saved.
+
+### Repair
+
+Loading never trusts what's there blindly: BoardKit parses it and **repairs** anything that no
+longer validates. An out-of-bounds tile is relocated onto free space instead of failing outright,
+and a tile referencing a widget type that's no longer registered is dropped, with a dev-only
+console warning either way. A completely unparsable value (corrupted JSON, wrong shape) falls back
+to `initialLayout` or empty, never a thrown error.
 
 ## `engine.parse` / `engine.repair`
 
 The same repair BoardProvider does under the hood is available directly from `boards.engine` (or
 any `Engine` from `createEngine`) for state you load yourself — from a backend response, a file,
-anywhere that isn't `localStorage`:
+anywhere that isn't `localStorage` (`restoreBoards` does this for you, with migration):
 
 ```ts
 const parsed = boards.engine.parse(rawJson);

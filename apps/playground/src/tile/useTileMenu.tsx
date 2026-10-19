@@ -16,7 +16,7 @@ export interface UseTileMenuResult {
 }
 
 // Shared state/behavior behind the "..." menu, reused by both the floating (headerless) trigger
-// and the inline one in the tileHeader strip.
+// and the inline one in the header strip.
 export function useTileMenu(tile: Tile): UseTileMenuResult {
   const t = useTile(tile);
   const [dialog, setDialog] = useState<TileMenuDialog>(null);

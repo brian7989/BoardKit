@@ -18,7 +18,7 @@ test('a mouse drag moves a tile to a new cell', async ({ page }) => {
   const rowBefore = await readRow(tile);
 
   // Drags start from the header strip only, not the widget body.
-  const header = tile.locator('[data-bk-tile-header]');
+  const header = tile.locator('[data-bk-drag-handle]');
   const headerBox = await header.boundingBox();
   const box = await tile.boundingBox();
   if (!box || !headerBox) throw new Error('tile has no layout box');

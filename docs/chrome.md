@@ -4,72 +4,61 @@ BoardKit renders the grid, the tiles and each widget's body — nothing you'd cl
 tile or a board. All of that is plain React, built on the hooks below and handed to
 `BoardProvider`.
 
-## `tileHeader`: a strip above every widget
+## `tile`: your own tile around every widget
 
 ```tsx
-import { noDragProps, type TileHeaderProps } from 'boardkit-react';
+import { noDragProps, useTile, type TileProps } from 'boardkit-react';
 
-function TileHeader({ tile, name }: TileHeaderProps) {
+function Card({ tile, widget, dragHandle, surface, header }: TileProps) {
+  const { name } = useTile(tile);
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <span>{name}</span>
-      <button {...noDragProps()}>⋯</button>
+    <div className="card" style={surface}>
+      {header ? (
+        <div className="card-header" {...dragHandle}>
+          <span>{name.current}</span>
+          <button {...noDragProps()}>⋯</button>
+        </div>
+      ) : null}
+      <div className="card-body">{widget}</div>
     </div>
   );
 }
 
-<BoardProvider config={boards} tileHeader={TileHeader}>
+<BoardProvider config={boards} tile={Card}>
 ```
 
-Hand `BoardProvider` a `tileHeader` and BoardKit reserves a fixed strip above every widget's body
-for it — sized by `headerHeight` on `defineBoards` (design px, default `32`), and excluded from
-the widget's own `designSize` so a widget's layout never needs to know it exists. The strip is the
-tile's drag grip — wrap only the buttons inside it in `noDragProps`, not the whole header.
+Hand `BoardProvider` a `tile` component and BoardKit renders it in every tile's box, passing:
 
-A widget opts out of the strip entirely with `header: false` on its manifest (see
-[Widgets](widgets.md)); `tileOverlay` then receives `hasHeader: false` for that tile, so an
-overlay can float its own chrome only where there's no strip to hold it.
+| Prop | What it is |
+| --- | --- |
+| `tile` | The tile being rendered (a preview copy mid-drag). |
+| `widget` | The widget, already scaled to fill whatever box you put it in, inside its own error boundary. |
+| `dragHandle` | Spread it on the element the tile should drag by. |
+| `surface` | The manifest's `surface` background/color, as a style object. |
+| `header` | `false` when the widget's manifest says `header: false`; a hint, so you decide what to drop. |
 
-`TileHeaderProps` also carries `placement`, `'strip'` (the default) or `'overlay'`, so a header
-for a `header: false` widget can still render — as a floating overlay on top of the widget's body
-instead of a reserved strip — rather than being hidden outright.
+Without a `tile` component, the widget alone fills the tile.
 
-### Dragging by the header
+The widget measures the box you give it, so a header, a border or padding around it is simply
+taken out of its space: its design width stays fixed (scaled with `zoom`), and its `designSize`
+height is whatever room is left.
 
-By default (`dragFrom="header"`) a tile with a header strip drags only from that strip — a click
-in the widget's body, on a table row, map or chart, never starts a drag. A tile with no strip
-(no `tileHeader`, `header: false`, or no strip room to hold it) still drags from anywhere on it,
-since it has no other handle. Pass `dragFrom="tile"` on `BoardProvider` to restore whole-tile
-dragging everywhere, as before.
+### Dragging
 
-```tsx
-<BoardProvider config={boards} tileHeader={TileHeader} dragFrom="tile">
-```
-
-## `tileOverlay`: decoration on top of a tile
-
-```tsx
-import { type TileOverlayProps } from 'boardkit-react';
-
-function TileDecoration({ tile, hasHeader }: TileOverlayProps) {
-  return hasHeader ? null : <span style={{ position: 'absolute', top: 4, right: 4 }}>●</span>;
-}
-
-<BoardProvider config={boards} tileOverlay={TileDecoration}>
-```
-
-`tileOverlay` renders on top of every tile, wrapped so pointer activity inside it never starts a
-tile drag. It's where a per-tile menu (below) usually lives.
+A tile that renders an element with `dragHandle` drags only from that element, so a click in the
+widget's body (a table row, a map, a chart) never starts a drag. A tile without one drags from
+anywhere on it. Wrap buttons inside the handle (or anywhere else) in `noDragProps()` so pressing
+them never starts a drag either.
 
 ## Recipe: a tile menu
 
 ```tsx
-import { useTile, type TileOverlayProps } from 'boardkit-react';
+import { noDragProps, useTile, type Tile } from 'boardkit-react';
 
-function TileMenu({ tile }: TileOverlayProps) {
+function TileMenu({ tile }: { readonly tile: Tile }) {
   const { size, float, stack, name, remove } = useTile(tile);
   return (
-    <details>
+    <details {...noDragProps()}>
       <summary>⋯</summary>
       <ul>
         {size.options.map((option) => (
@@ -89,10 +78,10 @@ function TileMenu({ tile }: TileOverlayProps) {
 }
 ```
 
-`useTile` bundles the granular hooks (`useTileSize`, `useTileFloat`, `useTileStack`,
-`useTileName`, `useTileInteraction`, `useTileRemove`) for a tile passed in by `tileOverlay` or
-`tileHeader` — always pass along the `tile` those give you, not one captured earlier, since a
-mid-drag tile is a preview copy.
+Render it from your `tile` component, passing the `tile` it was given. `useTile` bundles the
+granular hooks (`useTileSize`, `useTileFloat`, `useTileStack`, `useTileName`,
+`useTileInteraction`, `useTileRemove`); always pass the `tile` BoardKit hands you, not one captured
+earlier, since a mid-drag tile is a preview copy.
 
 ## Stacking: new widget, or existing tile
 
@@ -106,7 +95,7 @@ A tile's stack can grow two ways, and they aren't interchangeable:
   their props, names and any stack of their own) onto another tile, and remove the old tile.
 
 ```tsx
-function StackWithSheet({ tile }: TileOverlayProps) {
+function StackWithSheet({ tile }: { readonly tile: Tile }) {
   const { stack } = useTile(tile);
   const { widgets } = useWidgetCatalog();
   return widgets.map((widget) => (

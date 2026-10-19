@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { BoardId, BoardsState, Op, Rejection } from 'boardkit-core';
-import { TileOverlayContext, TileHeaderContext, type TileOverlayComponent, type TileHeaderComponent } from '../tile/index.js';
+import { TileContext, type TileComponent } from '../tile/index.js';
 import { BoardsContext } from './BoardsContext.js';
 import { BoardsConfigContext } from './internal/BoardsConfigContext.js';
 import { useControllableActiveBoard } from './internal/useControllableActiveBoard.js';
@@ -21,20 +21,15 @@ import { useBoardsConfigValue } from './internal/useBoardsConfigValue.js';
 import { useBoardsPersistence } from './persistence/useBoardsPersistence.js';
 import type { ChangeMeta } from './ChangeMeta.js';
 import type { BoardsConfig } from './config/BoardsConfig.js';
-import type { DragFrom } from './DragFrom.js';
 
 /** Props for `BoardProvider`: its config, controlled/uncontrolled state, and host callbacks. */
 export interface BoardProviderProps {
   readonly config: BoardsConfig;
-  /** The host's own tile chrome, rendered on top of every tile. Omit for no chrome. */
-  readonly tileOverlay?: TileOverlayComponent;
-  /** The host's tile header, rendered as a strip above the body, or as an overlay over a `header: false` widget's full-size body. Omit for no header. */
-  readonly tileHeader?: TileHeaderComponent;
-  /** Where a tile's drag gesture may start: `'header'` (default) restricts it to the header strip when the tile has one; `'tile'` allows anywhere on the tile. */
-  readonly dragFrom?: DragFrom;
+  /** The host's own tile: its card, header, menu and so on, wrapped around the widget it's given. Omit to render just the widget. */
+  readonly tile?: TileComponent;
   readonly value?: BoardsState;
   readonly defaultValue?: BoardsState;
-  /** Saves the board to `localStorage` under this key on every change. Uncontrolled boards also load it back on mount; controlled ones load it with `loadBoards`. */
+  /** Uncontrolled boards only: saves to `localStorage` under this key and loads it back on mount. A controlled board is saved by your own store; use `restoreBoards` when loading it. */
   readonly storageKey?: string;
   readonly onChange?: (next: BoardsState, meta: ChangeMeta) => void;
   readonly activeBoard?: BoardId;
@@ -48,12 +43,8 @@ export interface BoardProviderProps {
   readonly children?: ReactNode;
 }
 
-function TileChromeProviders({ tileOverlay, tileHeader, children }: BoardProviderProps) {
-  return (
-    <TileOverlayContext.Provider value={tileOverlay ?? null}>
-      <TileHeaderContext.Provider value={tileHeader ?? null}>{children}</TileHeaderContext.Provider>
-    </TileOverlayContext.Provider>
-  );
+function TileProvider({ tile, children }: BoardProviderProps) {
+  return <TileContext.Provider value={tile ?? null}>{children}</TileContext.Provider>;
 }
 
 /** Owns controlled/uncontrolled board state and provides it to `children` through context. */
@@ -76,7 +67,7 @@ export function BoardProvider(props: BoardProviderProps) {
   return (
     <BoardsContext.Provider value={contextValue}>
       <BoardsConfigContext.Provider value={configValue}>
-        <TileChromeProviders {...props} />
+        <TileProvider {...props} />
       </BoardsConfigContext.Provider>
     </BoardsContext.Provider>
   );

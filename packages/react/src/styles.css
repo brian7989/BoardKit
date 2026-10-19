@@ -23,13 +23,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* data-bk-drag-from picks which element is the actual handle: the whole tile, or (when the tile
-   drags by its header) the header strip only — the body keeps the default cursor either way. */
-[data-bk-tile-id][data-bk-draggable='true'][data-bk-drag-from='tile'] {
-  cursor: grab;
-}
-
-[data-bk-tile-id][data-bk-draggable='true'][data-bk-drag-from='header'] [data-bk-tile-header] {
+/* A tile that renders a drag handle shows grab only there; one without a handle drags from anywhere. */
+[data-bk-tile-id][data-bk-draggable='true']:not(:has([data-bk-drag-handle])),
+[data-bk-tile-id][data-bk-draggable='true'] [data-bk-drag-handle] {
   cursor: grab;
 }
 
@@ -79,19 +75,8 @@
   z-index: 14;
 }
 
-[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='tile'] {
-  cursor: grab;
-}
-
-[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='header'] [data-bk-tile-header] {
-  cursor: grab;
-}
-
-[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='tile']:active {
-  cursor: grabbing;
-}
-
-[data-bk-tile-id][data-bk-floating='true'][data-bk-drag-from='header'] [data-bk-tile-header]:active {
+[data-bk-tile-id][data-bk-floating='true']:not(:has([data-bk-drag-handle])):active,
+[data-bk-tile-id][data-bk-floating='true'] [data-bk-drag-handle]:active {
   cursor: grabbing;
 }
 

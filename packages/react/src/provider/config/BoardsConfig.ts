@@ -15,8 +15,6 @@ export interface BoardsConfig {
   readonly createId: () => string;
   /** A widget's fixed design canvas, in design px per cell — see `defineBoards`'s `designCellSize`. */
   readonly designCellSize: number;
-  /** The tileHeader strip's fixed height, in design px — see `defineBoards`'s `headerHeight`. */
-  readonly headerHeight: number;
   /** The widgets an uncontrolled `BoardProvider` seeds itself with — see `defineBoards`'s `initialLayout`. */
   readonly initialLayout?: readonly InitialLayoutTile[];
 }

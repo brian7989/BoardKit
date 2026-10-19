@@ -8,7 +8,7 @@ import { BoardProvider } from '../provider/BoardProvider.js';
 import { defineBoards } from '../provider/config/defineBoards.js';
 import { useBoards } from '../provider/hooks/useBoards.js';
 import { defineWidget, type WidgetProps } from '../widget/index.js';
-import type { TileOverlayProps } from '../tile/index.js';
+import type { TileProps } from '../tile/index.js';
 
 const SIZE_SMALL = { w: cell(1), h: cell(1) };
 const GRID_SIZE = 10;
@@ -66,9 +66,21 @@ function seedState(): BoardsState {
 
 const renderCounts: Record<string, number> = {};
 
-function CountingOverlay({ tile }: TileOverlayProps) {
+function CountingOverlayControls({ tile }: Pick<TileProps, 'tile'>) {
   renderCounts[tile.id] = (renderCounts[tile.id] ?? 0) + 1;
   return null;
+}
+
+// Renders the widget, with the test's controls beside it in a no-drag wrapper.
+function CountingOverlay({ tile, widget }: TileProps) {
+  return (
+    <>
+      {widget}
+      <div data-bk-no-drag="true">
+        <CountingOverlayControls tile={tile} />
+      </div>
+    </>
+  );
 }
 
 function tileElement(id: string): HTMLElement {
@@ -86,7 +98,7 @@ afterEach(cleanup);
 describe('a committed op on a 100-tile board', () => {
   it('re-renders only the moved tile and the tile it displaces', () => {
     render(
-      <BoardProvider config={config} defaultValue={seedState()} tileOverlay={CountingOverlay}>
+      <BoardProvider config={config} defaultValue={seedState()} tile={CountingOverlay}>
         <Board />
       </BoardProvider>,
     );

@@ -8,7 +8,7 @@ import { BoardProvider } from '../BoardProvider.js';
 import type { ChangeMeta } from '../ChangeMeta.js';
 import { ChangeReason } from '../ChangeReason.js';
 import { defineBoards } from '../config/defineBoards.js';
-import { loadBoards } from '../persistence/loadBoards.js';
+import { restoreBoards } from '../persistence/restoreBoards.js';
 import { createInitialState } from '../config/createInitialState.js';
 import { defineWidget, type WidgetProps } from '../../widget/index.js';
 import { useBoards } from './useBoards.js';
@@ -22,6 +22,10 @@ function Toggle({ props, setProps }: WidgetProps<{ readonly view: string }>) {
 
 const toggle = defineWidget({ type: 'toggle', title: 'Toggle', sizes: ['1x1'], defaultProps: { view: 'table' }, component: Toggle });
 const config = defineBoards({ grid: { cols: 3, rows: 1 }, widgets: [toggle], initialLayout: [{ widget: 'toggle', at: [1, 0] }] });
+
+function loadSaved(): BoardsState {
+  return restoreBoards(config, JSON.parse(window.localStorage.getItem(KEY) ?? 'null'));
+}
 
 function Controls() {
   const reset = useResetBoards();
@@ -77,7 +81,7 @@ describe('WidgetProps.setProps', () => {
     act(() => screen.getByText('view:table').click());
     expect(screen.getByText('view:cards')).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(250));
-    expect(loadBoards(config, KEY).boards[0]?.tiles[0]?.items[0]?.props).toEqual({ view: 'cards' });
+    expect(loadSaved().boards[0]?.tiles[0]?.items[0]?.props).toEqual({ view: 'cards' });
   });
 });
 
@@ -100,8 +104,8 @@ describe('setProps on a stack', () => {
 });
 
 describe('persistence for controlled boards', () => {
-  it('saves a controlled board under storageKey, and loadBoards reads it back', () => {
-    const initial = loadBoards(config, KEY);
+  it('leaves saving a controlled board to the host', () => {
+    const initial = loadSaved();
     const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
     render(
       <BoardProvider config={config} value={initial} onChange={onChange} storageKey={KEY}>
@@ -109,12 +113,12 @@ describe('persistence for controlled boards', () => {
       </BoardProvider>,
     );
     act(() => vi.advanceTimersByTime(250));
-    expect(colOf(loadBoards(config, KEY))).toBe(1);
+    expect(window.localStorage.getItem(KEY)).toBeNull();
   });
 
   it('keeps loading a save from before authored layouts existed, as the layout for its own grid', () => {
     const saved = { version: 3, grid: { cols: 3, rows: 1 }, boards: [{ id: 'default', tiles: [{ id: 't-toggle', col: 2, row: 0, size: { w: 1, h: 1 }, active: 0, items: [{ id: 'w-toggle', type: 'toggle' }] }] }] };
     window.localStorage.setItem(KEY, JSON.stringify(saved));
-    expect(colOf(loadBoards(config, KEY))).toBe(2);
+    expect(colOf(loadSaved())).toBe(2);
   });
 });

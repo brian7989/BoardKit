@@ -61,8 +61,8 @@ const serialized = engine.serialize(state); // back to a plain JSON-safe value
 
 `parse` never patches; `repair` runs whatever fixes it can (relocating an out-of-bounds tile,
 dropping one that references an unknown widget type) and reports what it changed. This is exactly
-what `boardkit-react`'s `storageKey` persistence uses under the hood — see
-[Boards & state](boards-and-state.md#storagekey-and-repair).
+what `boardkit-react`'s `restoreBoards` and `storageKey` use under the hood — see
+[Boards & state](boards-and-state.md#saving-boards).
 
 ## Other engine methods
 

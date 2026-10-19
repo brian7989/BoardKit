@@ -75,7 +75,7 @@ afterEach(cleanup);
 
 describe('WidgetContainer', () => {
   it('renders the widget component', () => {
-    render(<WidgetContainer tile={tileFor('ok')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} headerHeightPx={32} />);
+    render(<WidgetContainer tile={tileFor('ok')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} />);
     expect(screen.getByText('fine')).toBeInTheDocument();
   });
 
@@ -85,7 +85,7 @@ describe('WidgetContainer', () => {
 
     render(
       <div>
-        <WidgetContainer tile={tileFor('boom')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} headerHeightPx={32} onWidgetError={handleError} />
+        <WidgetContainer tile={tileFor('boom')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} onWidgetError={handleError} />
         <span>sibling tile</span>
       </div>,
     );
@@ -99,21 +99,21 @@ describe('WidgetContainer', () => {
   });
 
   it('passes the manifest title as name by default', () => {
-    render(<WidgetContainer tile={tileFor('named')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} headerHeightPx={32} />);
+    render(<WidgetContainer tile={tileFor('named')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} />);
     expect(screen.getByText('Named')).toBeInTheDocument();
   });
 
   it('passes the renamed displayName as name once set', () => {
-    render(<WidgetContainer tile={tileFor('named', 'Renamed')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} headerHeightPx={32} />);
+    render(<WidgetContainer tile={tileFor('named', 'Renamed')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} />);
     expect(screen.getByText('Renamed')).toBeInTheDocument();
   });
 
   it('sizes and zooms the inner design box from a measured real cell', () => {
     Object.defineProperty(globalThis, 'ResizeObserver', { configurable: true, value: FakeResizeObserver });
 
-    render(<WidgetContainer tile={tileFor('ok')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} headerHeightPx={32} />);
+    render(<WidgetContainer tile={tileFor('ok')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} />);
 
-    const inner = screen.getByText('fine').closest('[data-bk-tile-frame]')?.parentElement;
+    const inner = screen.getByText('fine').closest('[data-bk-tile-body]')?.firstElementChild;
     // 320×240 real px for a 1×1 cell at 160 design px/cell: zoom 2, design box 160×120.
     // jsdom doesn't serialize `zoom` into cssText, so it's read as a property, not via toHaveStyle.
     expect(inner).toHaveStyle({ width: '160px', height: '120px' });
@@ -127,7 +127,7 @@ describe('WidgetContainer', () => {
     const handleError = vi.fn();
 
     render(
-      <WidgetContainer tile={tileFor('missing')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} headerHeightPx={32} onWidgetError={handleError} />,
+      <WidgetContainer tile={tileFor('missing')} widgets={widgets} cells={{ w: 1, h: 1 }} locked={false} designCellSizePx={160} onWidgetError={handleError} />,
     );
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
