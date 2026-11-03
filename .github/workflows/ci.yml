@@ -28,7 +28,8 @@ jobs:
       - run: node scripts/checkFileExports.js
 
   e2e:
-    runs-on: ubuntu-latest
+    # Pinned: Playwright 1.56 has no Chromium build for the newer ubuntu-latest image.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
