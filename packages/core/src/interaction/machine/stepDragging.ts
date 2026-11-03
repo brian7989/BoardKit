@@ -3,7 +3,6 @@ import { EffectType } from '../events/EffectType.js';
 import type { InteractionEvent } from '../events/InteractionEvent.js';
 import { InteractionEventType } from '../events/InteractionEventType.js';
 import type { DraggingInteractionState } from '../state/InteractionState.js';
-import { pointerInsideBoard } from '../hitTest/pointerInsideBoard.js';
 import { targetFromPointer } from '../hitTest/targetFromPointer.js';
 import { previewMove } from '../preview/previewMove.js';
 import type { Point } from '../../shared/geometry/Point.js';
@@ -37,16 +36,11 @@ function stepMove(ctx: StepContext, state: DraggingInteractionState, at: Point<P
   };
 }
 
-function stepRelease(ctx: StepContext, state: DraggingInteractionState, at: Point<Px>): StepResult {
-  if (!pointerInsideBoard(at, ctx.boardRectPx)) return cancelInteraction();
-  return releaseDrag(ctx, state.tile, state.target);
-}
-
-// Move recomputes the target and its preview; Release inside the board commits or rejects,
-// Release outside the board (or an explicit Cancel) drops nothing.
+// Move recomputes the target and its preview. Release drops onto the last previewed target wherever
+// the pointer is, since that target is always clamped inside the board; only a Cancel drops nothing.
 export function stepDragging(ctx: StepContext, state: DraggingInteractionState, event: InteractionEvent): StepResult {
   if (event.type === InteractionEventType.Move) return stepMove(ctx, state, event.at);
-  if (event.type === InteractionEventType.Release) return stepRelease(ctx, state, event.at);
+  if (event.type === InteractionEventType.Release) return releaseDrag(ctx, state.tile, state.target);
   if (event.type === InteractionEventType.Cancel) return cancelInteraction();
   return noEffect(state);
 }

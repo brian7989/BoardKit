@@ -171,7 +171,7 @@ describe('step: pointer dragging', () => {
     expect(result.effects[1]).toEqual({ type: EffectType.Announce, key: AnnouncementKey.Rejected, params: {} });
   });
 
-  it('Dragging + Release outside the board cancels rather than dropping', () => {
+  it('Dragging + Release outside the board still drops onto the previewed target', () => {
     const engine = makeEngine();
     const ctx = makeContext(engine, seed(engine, [{ id: 't0', col: 0, row: 0 }]));
     const dragging = {
@@ -185,7 +185,8 @@ describe('step: pointer dragging', () => {
     const result = step(ctx, dragging, { type: InteractionEventType.Release, at: { x: px(-10), y: px(50) } });
 
     expect(result.state).toEqual({ phase: InteractionPhase.Idle });
-    expect(result.effects).toEqual([{ type: EffectType.Announce, key: AnnouncementKey.Cancelled, params: {} }]);
+    expect(result.effects[0]).toMatchObject({ type: EffectType.Commit, op: { type: OpType.Move, tile: tileId('t0'), to: { x: 1, y: 0 } } });
+    expect(result.effects[1]).toEqual({ type: EffectType.Announce, key: AnnouncementKey.Dropped, params: {} });
   });
 
   it('Cancel during Dragging returns to Idle with no commit', () => {

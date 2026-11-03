@@ -111,6 +111,38 @@ describe('drag interaction', () => {
     expect(nextState?.boards[0]?.tiles[0]).toMatchObject({ col: 1, row: 0 });
   });
 
+  it('drops a tile where its preview shows, even when released past the board edge', () => {
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    render(
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    fireEvent.pointerDown(getTileElement(), { clientX: 50, clientY: 50, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 150, clientY: 50 });
+    fireEvent.pointerUp(window, { clientX: 150, clientY: -200 });
+    fireEvent.click(window);
+
+    expect(onChange.mock.calls.at(-1)?.[0].boards[0]?.tiles[0]).toMatchObject({ col: 1, row: 0 });
+  });
+
+  it('commits nothing when the browser cancels the pointer mid-drag', () => {
+    const onChange = vi.fn<(next: BoardsState, meta: ChangeMeta) => void>();
+    render(
+      <BoardProvider config={config} defaultValue={seedState()} onChange={onChange}>
+        <Board />
+      </BoardProvider>,
+    );
+
+    fireEvent.pointerDown(getTileElement(), { clientX: 50, clientY: 50, button: 0 });
+    fireEvent.pointerMove(window, { clientX: 150, clientY: 50 });
+    fireEvent.pointerCancel(window);
+    fireEvent.click(window);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('blocks the native browser drag only while a tile gesture is under way', () => {
     render(
       <BoardProvider config={config} defaultValue={seedState()}>

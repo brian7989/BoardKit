@@ -227,12 +227,12 @@ describe('tile slot', () => {
     );
     const siblingRenders = renderCounts[T2];
 
-    // Released outside the board cancels rather than commits.
+    // A cancelled pointer commits nothing, isolating the drag's own renders from a commit's.
     const handle = screen.getByText(`handle-${T1}`);
     fireEvent.pointerDown(handle, { clientX: 10, clientY: 10, button: 0 });
     fireEvent.pointerMove(window, { clientX: 30, clientY: 10 });
     fireEvent.pointerMove(window, { clientX: 60, clientY: 10 });
-    fireEvent.pointerUp(window, { clientX: 1000, clientY: 1000 });
+    fireEvent.pointerCancel(window);
 
     expect(renderCounts[T1]).toBeGreaterThan(1);
     expect(renderCounts[T2]).toBe(siblingRenders);
